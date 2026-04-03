@@ -90,8 +90,10 @@ git clone <repository-url>
 cd smartBDU
 
 # 2. Install all dependencies
-npm run install:all
+npm run install 
 ```
+*for both frontend and backend separetely
+
 
 ### Environment Configuration
 
