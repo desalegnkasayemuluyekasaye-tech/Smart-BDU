@@ -12,7 +12,6 @@ import Directory from './pages/Directory';
 import AIAssistant from './pages/AIAssistant';
 import Home from './pages/Home';
 import CampusSelect from './pages/CampusSelect';
-import StudentDashboard from './pages/StudentDashboard';
 import Layout from './components/Layout';
 
 const PrivateRoute = ({ children }) => {
@@ -29,7 +28,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/campus" element={<CampusSelect />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/student" element={<PrivateRoute><StudentDashboard /></PrivateRoute>} />
+          <Route path="/student" element={<Navigate to="/app" replace />} />
           <Route path="/register" element={<Register />} />
           <Route path="/app" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
