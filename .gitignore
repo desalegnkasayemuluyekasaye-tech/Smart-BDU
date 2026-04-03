@@ -1,0 +1,65 @@
+# Node dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+.cache/
+.parcel-cache/
+.vite/
+/.next/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Misc
+*.sqlite
+*.sqlite3
+*.db
+*.tgz
+tmp/
+temp/
+
+# Keep lockfiles (do not ignore package-lock.json or yarn.lock at repo root)
+
+# Subproject specifics
+/backend/node_modules/
+/frontend/node_modules/
+/smartbdu-ai/node_modules/
+/backend/logs/
+/frontend/build/
+/smartbdu-ai/dist/

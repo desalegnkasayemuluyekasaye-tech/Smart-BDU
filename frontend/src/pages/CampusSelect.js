@@ -1,0 +1,51 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import campusMain from "../assets/campus-main.jpg";
+import campusBit  from "../assets/campus-bit.jpg";
+import campusZen  from "../assets/campus-zen.jpg";
+import campusTib  from "../assets/campus-tib.jpg";
+import campusYib  from "../assets/campus-yib.jpg";
+
+const campuses = [
+  { id: "main",    name: "Main Campus (Peda)",  image: campusMain },
+  { id: "bit",     name: "BIT / Poly Campus",   image: campusBit  },
+  { id: "zen",     name: "Zenzelma Campus",      image: campusZen  },
+  { id: "tibebe",  name: "Tibebe Ghion Campus",  image: campusTib  },
+  { id: "yibab",   name: "Yibab Campus",         image: campusYib  },
+];
+
+const CampusSelect = () => {
+  const navigate = useNavigate();
+
+  const handleSelect = (campus) => {
+    navigate("/login", { state: { campus } });
+  };
+
+  return (
+    <div className="campus-wrapper">
+      <div className="campus-card-box">
+        <div className="campus-logo-wrap">
+          <div className="campus-logo-circle">🎓</div>
+        </div>
+        <h1 className="campus-title">Smart<span>BDU</span></h1>
+        <p className="campus-subtitle">Select Your Campus</p>
+
+        <ul className="campus-list">
+          {campuses.map((c) => (
+            <li key={c.id}>
+              <button className="campus-item" onClick={() => handleSelect(c)}>
+                <img src={c.image} alt={c.name} className="campus-item-img" />
+                <span className="campus-item-name">{c.name}</span>
+                <svg className="campus-item-arrow" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/>
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+export default CampusSelect;
