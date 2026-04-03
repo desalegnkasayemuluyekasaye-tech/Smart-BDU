@@ -10,6 +10,7 @@ import Courses from './pages/Courses';
 import Services from './pages/Services';
 import Directory from './pages/Directory';
 import AIAssistant from './pages/AIAssistant';
+import Admin from './pages/Admin';
 import Home from './pages/Home';
 import CampusSelect from './pages/CampusSelect';
 import Layout from './components/Layout';
@@ -18,6 +19,12 @@ const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="loading"><div className="spinner"></div></div>;
   return user ? children : <Navigate to="/login" />;
+};
+
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading"><div className="spinner"></div></div>;
+  return user && user.role === 'admin' ? children : <Navigate to="/app" />;
 };
 
 function App() {
@@ -38,6 +45,7 @@ function App() {
             <Route path="services" element={<Services />} />
             <Route path="directory" element={<Directory />} />
             <Route path="ai-assistant" element={<AIAssistant />} />
+            <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
           </Route>
         </Routes>
       </Router>
