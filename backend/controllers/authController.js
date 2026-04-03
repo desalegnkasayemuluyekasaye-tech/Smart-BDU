@@ -7,11 +7,19 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, studentId, department, year, phone } = req.body;
-    const userExists = await User.findOne({ email });
-    if (userExists) return res.status(400).json({ message: 'User already exists' });
+    const { name, email, password, studentId, employeeId, department, year, phone, role } = req.body;
+    
+    let existingUser = await User.findOne({ 
+      $or: [
+        { email: email },
+        { studentId: studentId },
+        { employeeId: employeeId }
+      ].filter(q => q[Object.keys(q)[0]] !== undefined)
+    });
+    
+    if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
-    const user = await User.create({ name, email, password, studentId, department, year, phone });
+    const user = await User.create({ name, email, password, studentId, employeeId, department, year, phone, role });
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -26,12 +34,16 @@ const registerUser = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    // find by email first, then by studentId
-    let user = await User.findOne({ email: email });
+    const { id, password } = req.body;
+    
+    let user = await User.findOne({ studentId: id });
     if (!user) {
-      user = await User.findOne({ studentId: email });
+      user = await User.findOne({ employeeId: id });
     }
+    if (!user) {
+      user = await User.findOne({ email: id });
+    }
+    
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
@@ -40,6 +52,7 @@ const loginUser = async (req, res) => {
         role: user.role,
         department: user.department,
         studentId: user.studentId,
+        employeeId: user.employeeId,
         token: generateToken(user._id)
       });
     } else {
