@@ -64,6 +64,14 @@ const Layout = () => {
               <span>AI Assistant</span>
             </NavLink>
           </li>
+          {user?.role === 'admin' && (
+            <li className="nav-item">
+              <NavLink to="admin" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                <span>Admin</span>
+              </NavLink>
+            </li>
+          )}
         </ul>
       </aside>
       <main className="main-content">

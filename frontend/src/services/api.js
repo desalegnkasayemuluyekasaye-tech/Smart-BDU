@@ -37,6 +37,16 @@ export const announcementService = {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/announcements?${query}`, { headers: headers() });
     return res.json();
+  },
+  createAnnouncement: async (data) => {
+    const res = await fetch(`${API_URL}/announcements`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to create announcement');
+    return result;
   }
 };
 
@@ -53,6 +63,16 @@ export const courseService = {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/courses?${query}`, { headers: headers() });
     return res.json();
+  },
+  createCourse: async (data) => {
+    const res = await fetch(`${API_URL}/courses`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to create course');
+    return result;
   }
 };
 
@@ -92,5 +112,41 @@ export const aiService = {
       body: JSON.stringify({ message, history })
     });
     return res.json();
+  }
+};
+
+export const adminService = {
+  createUser: async (userData) => {
+    const res = await fetch(`${API_URL}/auth/admin/create-user`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(userData)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Request failed');
+    }
+    return data;
+  },
+  getUsers: async () => {
+    const res = await fetch(`${API_URL}/auth/admin/users`, {
+      headers: headers()
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Request failed');
+    }
+    return data;
+  },
+  deleteUser: async (id) => {
+    const res = await fetch(`${API_URL}/auth/admin/users/${id}`, {
+      method: 'DELETE',
+      headers: headers()
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Request failed');
+    }
+    return data;
   }
 };

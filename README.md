@@ -90,8 +90,10 @@ git clone <repository-url>
 cd smartBDU
 
 # 2. Install all dependencies
-npm run install:all
+npm run install 
 ```
+*for both frontend and backend separetely
+
 
 ### Environment Configuration
 
@@ -106,7 +108,6 @@ HUGGING_FACE_API_KEY=your_huggingface_api_key
 ```
 
 > **Note:** Obtain your Hugging Face API key from [huggingface.co/settings/inference](https://huggingface.co/settings/inference)
-
 ### Running the Application
 
 ```bash
