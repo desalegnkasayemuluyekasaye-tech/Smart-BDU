@@ -10,8 +10,16 @@ const assignmentSchema = new mongoose.Schema({
   dueTime: { type: String },
   points: { type: Number },
   instructions: { type: String },
+  section: { type: String },
   attachments: [{ type: String }],
-  status: { type: String, enum: ['pending', 'submitted', 'graded', 'late'], default: 'pending' },
+  accepted: { type: Boolean, default: false },
+  submittedFile: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
+  submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  lecturerAccepted: { type: Boolean, default: null }, // null = not reviewed, true = accepted, false = rejected
+  lecturerAcceptedAt: { type: Date },
+  lecturerAcceptedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  lecturerFeedback: { type: String }, // feedback before grading
+  status: { type: String, enum: ['pending', 'submitted', 'reviewed', 'graded', 'late'], default: 'pending' },
   submittedAt: { type: Date },
   grade: { type: Number },
   feedback: { type: String },

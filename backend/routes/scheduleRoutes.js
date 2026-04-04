@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getSchedule, createSchedule, createBatchSchedule, updateSchedule, deleteSchedule } = require('../controllers/scheduleController');
-const { protect, admin } = require('../middleware/authMiddleware');
+const { getSchedule, getMySchedule, createSchedule, createBatchSchedule, updateSchedule, deleteSchedule } = require('../controllers/scheduleController');
+const { protect, admin, lecturer } = require('../middleware/authMiddleware');
 
+router.get('/me', protect, lecturer, getMySchedule);
 router.get('/', protect, getSchedule);
 router.post('/', protect, admin, createSchedule);
 router.post('/batch', protect, admin, createBatchSchedule);

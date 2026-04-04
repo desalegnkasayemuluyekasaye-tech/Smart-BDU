@@ -197,6 +197,32 @@ body {
   padding: 20px;
 }
 
+.app-footer {
+  width: 100%;
+  background-color: #1e3a5f;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 18px 24px;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  .footer-content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -1537,6 +1563,45 @@ body {
 .login-input:focus {
   border-color: #1565c0;
   background: white;
+}
+
+.login-password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.login-input--with-toggle {
+  padding-right: 48px;
+  box-sizing: border-box;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #5c6b8a;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+
+.login-password-toggle:hover {
+  color: #1565c0;
+  background: rgba(21, 101, 192, 0.08);
+}
+
+.login-password-toggle:focus-visible {
+  outline: 2px solid #1565c0;
+  outline-offset: 2px;
 }
 
 .login-forgot {

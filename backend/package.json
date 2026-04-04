@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "setup": "echo 'Setting up SmartBDU...' && mkdir -p data/db && echo 'MongoDB data directory created' && echo 'Please start MongoDB manually: mongod --dbpath ./data/db' && echo 'Then run: npm run seed'",
+    "start:all": "echo 'Starting SmartBDU...' && echo 'Make sure MongoDB is running first!' && npm run start"
   },
   "dependencies": {
     "axios": "^1.14.0",

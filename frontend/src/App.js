@@ -16,6 +16,7 @@ import CampusSelect from './pages/CampusSelect';
 import StudentDashboard from './pages/StudentDashboard';
 import LecturerDashboard from './pages/LecturerDashboard';
 import Layout from './components/Layout';
+import Footer from './components/Footer';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -29,6 +30,19 @@ const AdminRoute = ({ children }) => {
   return user && user.role === 'admin' ? children : <Navigate to="/app" />;
 };
 
+const LecturerRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading"><div className="spinner"></div></div>;
+  return user && user.role === 'lecturer' ? children : <Navigate to="/app" />;
+};
+
+const StudentRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="loading"><div className="spinner"></div></div>;
+  if (!user) return <Navigate to="/login" />;
+  return user.role === 'student' ? children : <Navigate to="/app" />;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -38,8 +52,8 @@ function App() {
           <Route path="/campus" element={<CampusSelect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/student" element={<PrivateRoute><StudentDashboard /></PrivateRoute>} />
-          <Route path="/lecturer" element={<PrivateRoute><LecturerDashboard /></PrivateRoute>} />
+          <Route path="/student" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
+          <Route path="/lecturer" element={<LecturerRoute><LecturerDashboard /></LecturerRoute>} />
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/app" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
@@ -52,6 +66,7 @@ function App() {
             <Route path="admin" element={<AdminRoute><Admin /></AdminRoute>} />
           </Route>
         </Routes>
+        <Footer />
       </Router>
     </AuthProvider>
   );
