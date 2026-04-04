@@ -11,6 +11,7 @@
     "start:all": "echo 'Starting SmartBDU...' && echo 'Make sure MongoDB is running first!' && npm run start"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "axios": "^1.14.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",

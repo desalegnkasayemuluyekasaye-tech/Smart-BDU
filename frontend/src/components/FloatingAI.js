@@ -3,127 +3,155 @@ import { useAuth } from '../context/AuthContext';
 import { aiService } from '../services/api';
 import './FloatingAI.css';
 
+const QUICK = [
+  '📋 How do I register for courses?',
+  '📅 What is the academic calendar?',
+  '🏛️ Where are the main departments?',
+  '📝 How does grading work at BDU?',
+  '🎓 What are admission requirements?',
+  '📞 How do I contact my advisor?',
+];
+
+const WELCOME = `Hello! I'm your **SmartBDU AI Assistant** 🎓
+
+I'm here to help you with everything about **Bahir Dar University** — campus life, departments, admissions, registration, courses, schedules, academic rules, and more.
+
+How can I help you today?`;
+
 const FloatingAI = () => {
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Hello! I\'m your SmartBDU AI Assistant 🤖\n\nI can help you with:\n📚 Academic questions\n📅 Class schedules\n📝 Assignment information\n❓ Campus services\n\nHow can I help you today?' }
-  ]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isOpen,    setIsOpen]    = useState(false);
+  const [messages,  setMessages]  = useState([{ role: 'ai', content: WELCOME }]);
+  const [input,     setInput]     = useState('');
+  const [loading,   setLoading]   = useState(false);
+  const [showQuick, setShowQuick] = useState(true);
   const messagesEndRef = useRef(null);
+  const inputRef       = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, loading]);
 
-  const handleSend = async () => {
-    if (!input.trim() || loading) return;
-    
-    const userMessage = input.trim();
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [isOpen]);
+
+  const send = async (text) => {
+    const msg = (text || input).trim();
+    if (!msg || loading) return;
     setInput('');
-    const newMessages = [...messages, { role: 'user', content: userMessage }];
-    setMessages(newMessages);
+    setShowQuick(false);
+    setMessages(prev => [...prev, { role: 'user', content: msg }]);
     setLoading(true);
-
     try {
-      const history = messages.slice(-8).map(msg => ({
-        role: msg.role === 'ai' ? 'assistant' : msg.role,
-        content: msg.content
+      const history = messages.slice(-10).map(m => ({
+        role: m.role === 'ai' ? 'assistant' : 'user',
+        content: m.content,
       }));
-      
-      const userData = user ? {
-        name: user.name,
-        role: user.role || 'student',
-        department: user.department,
-        year: user.year
-      } : null;
-      
-      const result = await aiService.chat(userMessage, history, userData);
-      
-      if (result.response) {
-        setMessages(prev => [...prev, { role: 'ai', content: result.response }]);
-      } else {
-        setMessages(prev => [...prev, { role: 'ai', content: 'I\'m sorry, I couldn\'t process that. Please try again.' }]);
-      }
-    } catch (error) {
-      console.error('AI Error:', error);
-      setMessages(prev => [...prev, { role: 'ai', content: 'Connection error. Please check if the server is running and try again.' }]);
-    } finally {
-      setLoading(false);
+      const userData = user ? { name: user.name, role: user.role, department: user.department, year: user.year } : null;
+      const result = await aiService.chat(msg, history, userData);
+      setMessages(prev => [...prev, {
+        role: 'ai',
+        content: result.response || `⚠️ ${result.error || "Couldn't get a response. Please try again."}`,
+      }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'ai', content: `⚠️ ${err.message || 'Connection error. Make sure the backend is running.'}` }]);
     }
+    setLoading(false);
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+  const clearChat = () => {
+    setMessages([{ role: 'ai', content: WELCOME }]);
+    setShowQuick(true);
   };
 
-  const handleQuickQuestion = (q) => {
-    setInput(q);
-    setIsOpen(true);
-  };
-
-  const quickQuestions = [
-    'What is my schedule today?',
-    'Show my pending assignments',
-    'Where is the library?',
-    'Contact my advisor'
-  ];
+  // Render markdown-like bold (**text**)
+  const renderContent = (text) =>
+    text.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+      part.startsWith('**') && part.endsWith('**')
+        ? <strong key={i}>{part.slice(2, -2)}</strong>
+        : part
+    );
 
   return (
     <>
-      <button className="floating-ai-btn" onClick={() => setIsOpen(true)}>
-        <span className="ai-icon">🤖</span>
-        <span className="ai-label">AI Help</span>
+      {/* ── Floating button ── */}
+      <button className={`fai-btn ${isOpen ? 'fai-btn-active' : ''}`} onClick={() => setIsOpen(v => !v)} title="AI Help">
+        <span className="fai-btn-icon">{isOpen ? '✕' : '🤖'}</span>
+        {!isOpen && <span className="fai-btn-label">AI Help</span>}
       </button>
 
+      {/* ── Chat popup ── */}
       {isOpen && (
-        <div className="floating-ai-popup">
-          <div className="ai-popup-header">
-            <div className="ai-header-title">
-              <span className="ai-icon-small">🤖</span>
-              <span>SmartBDU AI</span>
+        <div className="fai-popup">
+          {/* Header */}
+          <div className="fai-header">
+            <div className="fai-header-left">
+              <div className="fai-avatar">🤖</div>
+              <div>
+                <div className="fai-header-name">SmartBDU AI</div>
+                <div className="fai-header-status"><span className="fai-dot" />BDU Campus Assistant</div>
+              </div>
             </div>
-            <button className="ai-close-btn" onClick={() => setIsOpen(false)}>×</button>
+            <div className="fai-header-actions">
+              <button className="fai-icon-btn" onClick={clearChat} title="Clear chat">🗑</button>
+              <button className="fai-icon-btn" onClick={() => setIsOpen(false)} title="Close">✕</button>
+            </div>
           </div>
 
-          <div className="ai-popup-messages">
-            {messages.map((msg, idx) => (
-              <div key={idx} className={`ai-msg ${msg.role}`}>
-                <div className="ai-msg-bubble">{msg.content}</div>
+          {/* Messages */}
+          <div className="fai-messages">
+            {messages.map((m, i) => (
+              <div key={i} className={`fai-msg-row ${m.role}`}>
+                {m.role === 'ai' && <div className="fai-msg-avatar">🤖</div>}
+                <div className={`fai-bubble ${m.role}`}>
+                  {renderContent(m.content)}
+                </div>
               </div>
             ))}
+
             {loading && (
-              <div className="ai-msg ai">
-                <div className="ai-msg-bubble">
-                  <div className="ai-spinner"></div>
+              <div className="fai-msg-row ai">
+                <div className="fai-msg-avatar">🤖</div>
+                <div className="fai-bubble ai fai-typing">
+                  <span /><span /><span />
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="ai-quick-questions">
-            {quickQuestions.map((q, idx) => (
-              <button key={idx} className="ai-quick-btn" onClick={() => handleQuickQuestion(q)}>
-                {q}
-              </button>
-            ))}
-          </div>
+          {/* Quick questions */}
+          {showQuick && (
+            <div className="fai-quick">
+              <div className="fai-quick-label">Quick questions</div>
+              <div className="fai-quick-grid">
+                {QUICK.map((q, i) => (
+                  <button key={i} className="fai-quick-btn" onClick={() => send(q)}>{q}</button>
+                ))}
+              </div>
+            </div>
+          )}
 
-          <div className="ai-popup-input">
+          {/* Input */}
+          <div className="fai-input-row">
             <input
+              ref={inputRef}
               type="text"
-              placeholder="Ask me anything..."
+              className="fai-input"
+              placeholder="Ask about BDU campus, courses, admissions..."
               value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
               disabled={loading}
             />
-            <button onClick={handleSend} disabled={loading || !input.trim()}>➤</button>
+            <button
+              className="fai-send-btn"
+              onClick={() => send()}
+              disabled={loading || !input.trim()}
+              title="Send">
+              {loading ? <span className="fai-send-spin" /> : '➤'}
+            </button>
           </div>
         </div>
       )}
