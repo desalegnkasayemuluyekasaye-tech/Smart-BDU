@@ -2,20 +2,23 @@ const axios = require('axios');
 
 const chatWithAI = async (req, res) => {
   try {
-    const { message, history } = req.body;
+    const { message, history, userData } = req.body;
 
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
+    const userContext = buildUserContext(userData);
+    const fullMessage = userContext ? `${userContext}\n\nUser question: ${message}` : message;
+
     const conversationHistory = history 
-      ? history.map(msg => ({
+      ? history.slice(-6).map(msg => ({
           role: msg.role === 'user' ? 'user' : 'assistant',
           content: msg.content
         }))
       : [];
 
-    conversationHistory.push({ role: 'user', content: message });
+    conversationHistory.push({ role: 'user', content: fullMessage });
 
     const response = await axios.post(
       'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill',
@@ -27,7 +30,7 @@ const chatWithAI = async (req, res) => {
           generated_responses: conversationHistory
             .filter((_, i) => i % 2 === 1)
             .map(msg => msg.content),
-          text: message
+          text: fullMessage
         }
       },
       {
@@ -38,8 +41,10 @@ const chatWithAI = async (req, res) => {
       }
     );
 
-    const aiResponse = response.data.generated_text || 
+    let aiResponse = response.data.generated_text || 
       "I'm sorry, I couldn't process that request. Please try again.";
+
+    aiResponse = cleanResponse(aiResponse);
 
     res.json({ 
       response: aiResponse,
@@ -61,6 +66,32 @@ const chatWithAI = async (req, res) => {
       success: false 
     });
   }
+};
+
+const buildUserContext = (userData) => {
+  if (!userData) return null;
+  
+  let context = `You are a helpful academic assistant for Bahir Dar University. The user is a ${userData.role} named ${userData.name}.`;
+  
+  if (userData.department) {
+    context += ` Department: ${userData.department}.`;
+  }
+  if (userData.year) {
+    context += ` Year: ${userData.year}.`;
+  }
+  
+  return context;
+};
+
+const cleanResponse = (response) => {
+  let cleaned = response.replace(/<pad>/g, '').trim();
+  cleaned = cleaned.replace(/^.*?:/, '').trim();
+  
+  if (cleaned.length > 500) {
+    cleaned = cleaned.substring(0, 500) + '...';
+  }
+  
+  return cleaned || "I understand. Let me help you with that!";
 };
 
 module.exports = { chatWithAI };
