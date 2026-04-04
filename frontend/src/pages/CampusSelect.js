@@ -1,14 +1,14 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import campusMain from "../assets/campus-main.jpg";
-import campusBit  from "../assets/campus-bit.jpg";
 import campusZen  from "../assets/campus-zen.jpg";
 import campusTib  from "../assets/campus-tib.jpg";
 import campusYib  from "../assets/campus-yib.jpg";
+import polyCampus from "../assets/poly-campus-photo.png";
 
 const campuses = [
   { id: "main",    name: "Main Campus (Peda)",  image: campusMain },
-  { id: "bit",     name: "BIT / Poly Campus",   image: campusBit  },
+  { id: "bit",     name: "BIT / Poly Campus",   image: polyCampus },
   { id: "zen",     name: "Zenzelma Campus",      image: campusZen  },
   { id: "tibebe",  name: "Tibebe Ghion Campus",  image: campusTib  },
   { id: "yibab",   name: "Yibab Campus",         image: campusYib  },
@@ -25,9 +25,8 @@ const CampusSelect = () => {
     <div className="campus-wrapper">
       <div className="campus-card-box">
         <div className="campus-logo-wrap">
-          <div className="campus-logo-circle">🎓</div>
+          <img src="/logo.png" alt="SmartBDU" className="campus-logo-img" />
         </div>
-        <h1 className="campus-title">Smart<span>BDU</span></h1>
         <p className="campus-subtitle">Select Your Campus</p>
 
         <ul className="campus-list">

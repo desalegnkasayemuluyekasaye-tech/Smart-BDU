@@ -10,8 +10,15 @@ const userSchema = new mongoose.Schema({
   department: { type: String },
   year: { type: Number },
   phone: { type: String },
-  role: { type: String, enum: ['student', 'admin', 'lecturer'], default: 'student' },
+  role: { type: String, enum: ['student', 'admin', 'faculty', 'lecturer'], default: 'student' },
   avatar: { type: String },
+  // For teachers - can teach multiple departments/classes
+  departments: [{ type: String }],
+  classes: [{ 
+    department: String,
+    year: Number,
+    section: String
+  }],
 }, { timestamps: true });
 
 

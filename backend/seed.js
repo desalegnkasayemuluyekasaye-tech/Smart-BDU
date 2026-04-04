@@ -14,12 +14,15 @@ const connectDB = async () => {
 
 const seedUsers = async () => {
   try {
-    // Check if admin user already exists
-    const adminExists = await User.findOne({ email: 'admin@bdu.edu.et' });
-    if (adminExists) {
-      console.log('Admin user already exists');
-      return;
-    }
+    // Clear existing test users
+    await User.deleteMany({ 
+      $or: [
+        { email: 'admin@bdu.edu.et' },
+        { email: 'sarah.johnson@bdu.edu.et' },
+        { email: 'abebe.kebede@bdu.edu.et' }
+      ]
+    });
+    console.log('Cleared existing test users');
 
     // Create default users
     const users = [
@@ -32,10 +35,11 @@ const seedUsers = async () => {
         phone: '+251911000000'
       },
       {
-        name: 'Sarah Johnson',
+        name: 'Dr. Sarah Johnson',
         email: 'sarah.johnson@bdu.edu.et',
         password: 'faculty123',
-        role: 'faculty',
+        employeeId: 'TG2024001',
+        role: 'lecturer',
         department: 'Computer Science',
         phone: '+251911111111'
       },
@@ -54,10 +58,19 @@ const seedUsers = async () => {
     for (const userData of users) {
       const user = new User(userData);
       await user.save();
-      console.log(`Created user: ${userData.email}`);
+      console.log(`Created user: ${userData.email} with role: ${userData.role}`);
     }
 
-    console.log('Seeding completed successfully');
+    // Verify users were created
+    const allUsers = await User.find({});
+    console.log(`Total users in database: ${allUsers.length}`);
+    allUsers.forEach(u => console.log(`  - ${u.email} (${u.role}, studentId: ${u.studentId || 'none'}, employeeId: ${u.employeeId || 'none'})`));
+
+    console.log('\n✅ Seeding completed successfully!');
+    console.log('\nTest Accounts:');
+    console.log('  Admin: admin@bdu.edu.et / admin123');
+    console.log('  Teacher: sarah.johnson@bdu.edu.et / faculty123 (or TG2024001)');
+    console.log('  Student: abebe.kebede@bdu.edu.et / student123 (or BDU2024001)');
   } catch (error) {
     console.error('Seeding error:', error);
   }

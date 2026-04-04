@@ -117,7 +117,7 @@ npm run dev
 
 The application runs on:
 - **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:5000
+- **Backend API:** http://localhost:8000
 
 ### Seeding Sample Data
 
@@ -163,6 +163,26 @@ http://localhost:5000/api
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/ai/chat` | Chat with AI assistant |
+| POST | `/ai/roadmap` | Generate learning roadmap |
+| POST | `/ai/cv` | Generate professional CV |
+
+### File Upload (Faculty Only)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/files/upload` | Upload teaching materials |
+| GET | `/files` | List all uploaded files |
+| GET | `/files/my-files` | List my uploaded files |
+| GET | `/files/download/:id` | Download a file |
+| DELETE | `/files/:id` | Delete a file |
+
+### Admin Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/auth/admin/create-user` | Create new user |
+| GET | `/auth/admin/users` | List all users |
+| DELETE | `/auth/admin/users/:id` | Delete a user |
 
 **Request Body:**
 ```json

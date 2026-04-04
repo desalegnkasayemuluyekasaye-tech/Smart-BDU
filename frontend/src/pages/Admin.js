@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { adminService, courseService, announcementService } from '../services/api';
+import { adminService, courseService, announcementService, postService } from '../services/api';
 import './Admin.css';
 
 const Admin = () => {
@@ -9,15 +9,16 @@ const Admin = () => {
 
   // ================= USERS STATE =================
   const [studentForm, setStudentForm] = useState({
-    name: '', email: '', password: '', studentId: '', department: '', year: '', phone: ''
+    name: '', email: '', studentId: '', department: '', year: '', phone: ''
   });
   const [teacherForm, setTeacherForm] = useState({
-    name: '', email: '', password: '', department: '', phone: ''
+    name: '', email: '', employeeId: '', department: '', phone: '', departments: '', classes: []
   });
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [studentLoading, setStudentLoading] = useState(false);
   const [teacherLoading, setTeacherLoading] = useState(false);
+  const [createdUserPassword, setCreatedUserPassword] = useState(null);
 
   // ================= COURSES STATE =================
   const [courseForm, setCourseForm] = useState({
@@ -47,6 +48,7 @@ const Admin = () => {
     // Clear messages when switching tabs
     setMessage('');
     setError('');
+    setCreatedUserPassword(null);
   }, [activeTab]);
 
   // ================= FETCHERS =================
@@ -94,16 +96,18 @@ const Admin = () => {
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
-    if (!studentForm.name || !studentForm.email || !studentForm.password || !studentForm.studentId || !studentForm.department || !studentForm.year) {
+    if (!studentForm.name || !studentForm.email || !studentForm.studentId || !studentForm.department || !studentForm.year) {
       setError('Please fill in all required fields');
       return;
     }
     setStudentLoading(true);
+    setCreatedUserPassword(null);
     try {
       const studentData = { ...studentForm, role: 'student', year: parseInt(studentForm.year) || undefined };
-      await adminService.createUser(studentData);
-      setMessage('Student added successfully!');
-      setStudentForm({ name: '', email: '', password: '', studentId: '', department: '', year: '', phone: '' });
+      const result = await adminService.createUser(studentData);
+      setMessage('Student added successfully! Initial password = Student ID');
+      setCreatedUserPassword({ name: studentData.name, id: studentData.studentId, password: studentData.studentId });
+      setStudentForm({ name: '', email: '', studentId: '', department: '', year: '', phone: '' });
       setError('');
       fetchUsers();
     } catch (err) {
@@ -116,15 +120,23 @@ const Admin = () => {
 
   const handleTeacherSubmit = async (e) => {
     e.preventDefault();
-    if (!teacherForm.name || !teacherForm.email || !teacherForm.password || !teacherForm.department) {
+    if (!teacherForm.name || !teacherForm.email || !teacherForm.department || !teacherForm.employeeId) {
       setError('Please fill in all required fields');
       return;
     }
     setTeacherLoading(true);
+    setCreatedUserPassword(null);
     try {
-      await adminService.createUser({ ...teacherForm, role: 'faculty' });
-      setMessage('Teacher added successfully!');
-      setTeacherForm({ name: '', email: '', password: '', department: '', phone: '' });
+      // Parse departments and classes
+      const departments = teacherForm.departments ? teacherForm.departments.split(',').map(d => d.trim()) : [teacherForm.department];
+      const result = await adminService.createUser({ 
+        ...teacherForm, 
+        role: 'faculty',
+        departments
+      });
+      setMessage('Teacher added successfully! Initial password = Employee ID');
+      setCreatedUserPassword({ name: teacherForm.name, id: teacherForm.employeeId, password: teacherForm.employeeId });
+      setTeacherForm({ name: '', email: '', employeeId: '', department: '', phone: '', departments: '' });
       setError('');
       fetchUsers();
     } catch (err) {
@@ -213,11 +225,11 @@ const Admin = () => {
               <form onSubmit={handleStudentSubmit}>
                 <div className="form-group"><label>Name: *</label><input type="text" name="name" value={studentForm.name} onChange={handleStudentChange} required /></div>
                 <div className="form-group"><label>Email: *</label><input type="email" name="email" value={studentForm.email} onChange={handleStudentChange} required /></div>
-                <div className="form-group"><label>Password: *</label><input type="password" name="password" value={studentForm.password} onChange={handleStudentChange} required /></div>
-                <div className="form-group"><label>Student ID: *</label><input type="text" name="studentId" value={studentForm.studentId} onChange={handleStudentChange} required /></div>
+                <div className="form-group"><label>Student ID: *</label><input type="text" name="studentId" value={studentForm.studentId} onChange={handleStudentChange} placeholder="e.g., BDU2024001" required /></div>
                 <div className="form-group"><label>Department: *</label><input type="text" name="department" value={studentForm.department} onChange={handleStudentChange} required /></div>
                 <div className="form-group"><label>Year: *</label><input type="number" name="year" value={studentForm.year} onChange={handleStudentChange} required /></div>
                 <div className="form-group"><label>Phone:</label><input type="text" name="phone" value={studentForm.phone} onChange={handleStudentChange} /></div>
+                <p style={{fontSize:'12px',color:'#666',marginBottom:'10px'}}>Initial password will be the Student ID</p>
                 <button type="submit" className="submit-btn" disabled={studentLoading}>{studentLoading ? 'Adding...' : 'Add Student'}</button>
               </form>
             </div>
@@ -227,13 +239,26 @@ const Admin = () => {
               <form onSubmit={handleTeacherSubmit}>
                 <div className="form-group"><label>Name: *</label><input type="text" name="name" value={teacherForm.name} onChange={handleTeacherChange} required /></div>
                 <div className="form-group"><label>Email: *</label><input type="email" name="email" value={teacherForm.email} onChange={handleTeacherChange} required /></div>
-                <div className="form-group"><label>Password: *</label><input type="password" name="password" value={teacherForm.password} onChange={handleTeacherChange} required /></div>
-                <div className="form-group"><label>Department: *</label><input type="text" name="department" value={teacherForm.department} onChange={handleTeacherChange} required /></div>
+                <div className="form-group"><label>Employee ID: *</label><input type="text" name="employeeId" value={teacherForm.employeeId} onChange={handleTeacherChange} placeholder="e.g., TG2024001" required /></div>
+                <div className="form-group"><label>Primary Department: *</label><input type="text" name="department" value={teacherForm.department} onChange={handleTeacherChange} required /></div>
+                <div className="form-group"><label>Additional Departments:</label><input type="text" name="departments" value={teacherForm.departments} onChange={handleTeacherChange} placeholder="Comma separated (e.g., CS, Math)" /></div>
                 <div className="form-group"><label>Phone:</label><input type="text" name="phone" value={teacherForm.phone} onChange={handleTeacherChange} /></div>
+                <p style={{fontSize:'12px',color:'#666',marginBottom:'10px'}}>Initial password will be the Employee ID</p>
                 <button type="submit" className="submit-btn" disabled={teacherLoading}>{teacherLoading ? 'Adding...' : 'Add Teacher'}</button>
               </form>
             </div>
           </div>
+
+          {/* Show created user password */}
+          {createdUserPassword && (
+            <div className="success-message" style={{marginTop:'20px',padding:'15px',background:'#e8f5e9'}}>
+              <strong>User Created Successfully!</strong>
+              <p style={{margin:'10px 0'}}>User: {createdUserPassword.name}</p>
+              <p>ID: <strong>{createdUserPassword.id}</strong></p>
+              <p>Initial Password: <strong>{createdUserPassword.password}</strong></p>
+              <p style={{fontSize:'12px',color:'#666',marginTop:'5px'}}>User must change password on first login.</p>
+            </div>
+          )}
 
           <div className="data-section">
             <div className="section-header">
@@ -245,14 +270,15 @@ const Admin = () => {
                 <table>
                   <thead>
                     <tr>
-                      <th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Student ID</th><th>Created</th><th>Actions</th>
+                      <th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>ID</th><th>Created</th><th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map((u) => (
                       <tr key={u._id}>
                         <td>{u.name}</td><td>{u.email}</td><td className={`role-${u.role}`}>{u.role}</td>
-                        <td>{u.department || '-'}</td><td>{u.studentId || '-'}</td>
+                        <td>{u.department || '-'}</td>
+                        <td>{u.studentId || u.employeeId || '-'}</td>
                         <td>{new Date(u.createdAt).toLocaleDateString()}</td>
                         <td>
                           <button className="delete-btn" onClick={() => handleDeleteUser(u._id)}>Delete</button>

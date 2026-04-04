@@ -238,13 +238,15 @@ body {
   margin-bottom: 30px;
 }
 
-.auth-logo h2 {
-  color: var(--primary-color);
-  font-size: 28px;
+.login-logo-img {
+  height: 60px;
+  width: auto;
+  margin-bottom: 12px;
 }
 
-.auth-logo span {
-  color: var(--accent-color);
+.auth-logo p {
+  color: #666;
+  font-size: 14px;
 }
 
 .dashboard-stats {
@@ -662,7 +664,6 @@ body {
 
 /* ========== HOME PAGE REDESIGN ========== */
 
-/* Navbar */
 .home-nav {
   position: fixed;
   top: 0;
@@ -671,12 +672,10 @@ body {
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 18px 48px;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  gap: 20px;
+  padding: 14px 48px;
+  background: linear-gradient(90deg, var(--brand-blue), var(--brand-dark));
+  box-shadow: 0 2px 20px rgba(21, 101, 192, 0.25);
 }
 
 .nav-brand {
@@ -688,19 +687,25 @@ body {
 
 .nav-brand span { color: var(--accent-color); }
 
+.nav-logo-img {
+  height: 44px;
+  width: auto;
+}
+
 .nav-links {
   list-style: none;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
+  margin-left: auto;
   padding: 0;
 }
 
 .nav-link-item {
-  color: rgba(255,255,255,0.85);
+  color: rgba(255,255,255,0.9);
   text-decoration: none;
-  padding: 8px 18px;
+  padding: 10px 18px;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 500;
@@ -708,26 +713,28 @@ body {
 }
 
 .nav-link-item:hover {
+  background: rgba(255,255,255,0.2);
   color: white;
-  background: rgba(255,255,255,0.1);
 }
 
 .nav-link-btn {
   color: white;
   text-decoration: none;
-  padding: 9px 24px;
-  border-radius: 30px;
+  padding: 10px 24px;
+  border-radius: 25px;
   font-size: 15px;
   font-weight: 600;
-  background: linear-gradient(135deg, #ff9800, #f57c00);
+  background: rgba(255,255,255,0.2);
   transition: all 0.25s ease;
-  box-shadow: 0 4px 14px rgba(255,152,0,0.4);
+  border: 1px solid rgba(255,255,255,0.3);
   margin-left: 8px;
 }
 
 .nav-link-btn:hover {
+  background: white;
+  color: var(--brand-blue);
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(255,152,0,0.5);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 /* Hamburger */
@@ -739,14 +746,14 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px;
+  padding: 8px;
   z-index: 110;
+  margin-left: auto;
 }
-
 .hamburger span {
   display: block;
   width: 26px;
-  height: 2px;
+  height: 2.5px;
   background: white;
   border-radius: 2px;
   transition: all 0.3s ease;
@@ -767,7 +774,7 @@ body {
 }
 
 @media (max-width: 768px) {
-  .home-nav { padding: 16px 24px; }
+  .home-nav { padding: 14px 24px; }
 
   .hamburger { display: flex; }
 
@@ -776,14 +783,14 @@ body {
     top: 0;
     right: -100%;
     height: 100vh;
-    width: 260px;
-    background: rgba(0,0,0,0.95);
+    width: 280px;
+    background: linear-gradient(180deg, var(--brand-blue), var(--brand-dark));
     flex-direction: column;
     align-items: flex-start;
     padding: 90px 30px 40px;
     gap: 6px;
     transition: right 0.35s ease;
-    border-left: 1px solid rgba(255,255,255,0.08);
+    box-shadow: -4px 0 20px rgba(0,0,0,0.2);
   }
 
   .nav-links--open { right: 0; }
@@ -1031,8 +1038,8 @@ body {
 
 /* Footer */
 .home-footer {
-  background: #000000;
-  color: rgba(255,255,255,0.6);
+  background: var(--brand-dark);
+  color: rgba(255,255,255,0.7);
 }
 
 .footer-top {
@@ -1040,7 +1047,7 @@ body {
   grid-template-columns: 1.4fr 1fr 1.4fr 1fr;
   gap: 48px;
   padding: 64px 60px 48px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 .footer-col-title {
@@ -1183,7 +1190,7 @@ body {
 .campus-wrapper {
   min-height: 100vh;
   width: 100%;
-  background: linear-gradient(160deg, #dce8f8 0%, #eaf1fb 50%, #d6e4f7 100%);
+  background: linear-gradient(160deg, var(--brand-light) 0%, #bbdefb 50%, var(--brand-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1197,7 +1204,7 @@ body {
   width: 100%;
   max-width: 480px;
   min-height: 92vh;
-  box-shadow: 0 24px 80px rgba(30, 58, 95, 0.13);
+  box-shadow: 0 24px 80px rgba(21, 101, 192, 0.15);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -1221,6 +1228,13 @@ body {
   justify-content: center;
   font-size: 36px;
   box-shadow: 0 8px 24px rgba(30,58,95,0.28);
+}
+
+.campus-logo-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, 0.28);
 }
 
 .campus-title {
@@ -1732,4 +1746,908 @@ body {
 @media (max-width: 520px) {
   .sd-wrapper { padding: 0; }
   .sd-screen  { min-height: 100vh; border-radius: 0; max-width: 100%; }
+}
+
+/* ========== HARVARD-STYLE DASHBOARD ========== */
+:root {
+  --brand-blue: #1565c0;
+  --brand-light: #e3f2fd;
+  --brand-dark: #0d47a1;
+}
+
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 12px;
+  z-index: 110;
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 26px;
+  height: 3px;
+  background: #1565c0;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .hamburger-btn {
+    display: flex;
+  }
+  
+  .harvard-nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 280px;
+    background: linear-gradient(180deg, #1565c0, #0d47a1);
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 90px 20px 40px;
+    gap: 8px;
+    transition: right 0.35s ease;
+    z-index: 100;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+  }
+
+  .harvard-nav.open {
+    right: 0;
+  }
+
+  .harvard-nav .nav-item {
+    width: 100%;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 10px;
+    justify-content: flex-start;
+    font-size: 15px;
+  }
+
+  .harvard-nav .nav-item:hover,
+  .harvard-nav .nav-item.active {
+    background: rgba(255,255,255,0.2);
+  }
+}
+
+.harvard-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--brand-blue) 0%, var(--brand-dark) 100%);
+}
+
+.harvard-header {
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  padding: 0 40px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.harvard-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.harvard-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-img {
+  height: 48px;
+  width: auto;
+}
+
+.nav-logo-img {
+  height: 44px;
+  width: auto;
+}
+
+.campus-logo-img {
+  width: 90px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(21, 101, 192, 0.28);
+}
+
+.harvard-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.harvard-nav .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.harvard-nav .nav-item:hover {
+  background: #f0f4f8;
+  color: #1e3a5f;
+}
+
+.harvard-nav .nav-item.active {
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+  color: white;
+  box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);
+}
+
+.harvard-nav .nav-icon {
+  font-size: 16px;
+}
+
+.harvard-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.harvard-user-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.harvard-user-details {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.harvard-user-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.harvard-user-id {
+  font-size: 12px;
+  color: #888;
+}
+
+.harvard-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.harvard-avatar:hover {
+  transform: scale(1.08);
+}
+
+.harvard-main {
+  padding: 30px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: var(--brand-light);
+  min-height: calc(100vh - 72px);
+}
+
+.harvard-welcome {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 30px 35px;
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 8px 25px rgba(21, 101, 192, 0.25);
+}
+
+.welcome-content h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.welcome-content p {
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+.welcome-stats {
+  display: flex;
+  gap: 20px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 18px 28px;
+  text-align: center;
+  border: none;
+  min-width: 120px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+.harvard-quick-actions {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  background: white;
+  border: 1px solid var(--brand-light);
+  border-radius: 12px;
+  color: var(--brand-blue);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.quick-action-btn:hover {
+  background: var(--brand-blue);
+  color: white;
+  border-color: var(--brand-blue);
+  transform: translateY(-2px);
+}
+
+.quick-action-icon {
+  font-size: 18px;
+}
+
+.harvard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.harvard-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.harvard-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.harvard-card .card-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e3a5f;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.card-icon {
+  font-size: 18px;
+}
+
+.view-all-btn {
+  background: none;
+  border: none;
+  color: var(--brand-blue);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.view-all-btn:hover {
+  color: #c41e3a;
+}
+
+.harvard-card .card-body {
+  padding: 20px 24px;
+}
+
+.courses-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.course-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.course-item:hover {
+  background: #f0f4f8;
+  transform: translateX(4px);
+}
+
+.course-code {
+  background: linear-gradient(135deg, #1e3a5f, #2c5282);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 80px;
+}
+
+.course-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.course-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.course-instructor {
+  font-size: 12px;
+  color: #888;
+}
+
+.course-grade {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.grade-badge {
+  background: #e8f5e9;
+  color: #2e7d32;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.credits {
+  font-size: 11px;
+  color: #888;
+}
+
+.schedule-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.schedule-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.schedule-time {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-blue);
+  min-width: 90px;
+}
+
+.schedule-bar {
+  flex: 1;
+  background: linear-gradient(90deg, #f8fafc, #e8eef5);
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.schedule-course {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a5f;
+}
+
+.schedule-room {
+  font-size: 12px;
+  color: #888;
+}
+
+.announcements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.announcement-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.announcement-item:hover {
+  background: #f0f4f8;
+  transform: translateX(4px);
+}
+
+.announcement-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.announcement-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.announcement-date {
+  font-size: 12px;
+  color: #888;
+}
+
+.announcement-arrow {
+  color: #ccc;
+  font-size: 18px;
+}
+
+.ai-card {
+  background: linear-gradient(135deg, #1e3a5f, #2c5282);
+  color: white;
+}
+
+.ai-card .card-header h3 {
+  color: white;
+}
+
+.ai-card .card-body {
+  padding: 24px;
+}
+
+.ai-description {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.ai-features {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ai-feature-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.ai-feature-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+.harvard-footer-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.info-card {
+  background: rgba(21, 101, 192, 0.15);
+  border: 1px solid rgba(21, 101, 192, 0.2);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.info-icon {
+  font-size: 28px;
+}
+
+.info-content h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
+}
+
+.info-content p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+@media (max-width: 1200px) {
+  .harvard-grid {
+    grid-template-columns: 1fr;
+  }
+  .harvard-footer-info {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .harvard-header {
+    padding: 0 20px;
+  }
+  .harvard-main {
+    padding: 20px;
+  }
+  .harvard-welcome {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+  .welcome-stats {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .harvard-quick-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .harvard-header {
+    height: auto;
+    padding: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .harvard-logo-text {
+    display: none;
+  }
+  .harvard-user-details {
+    display: none;
+  }
+}
+
+/* ========== MODAL STYLES ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f4f8;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #888;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-content form {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.upload-card .card-body {
+  padding: 20px;
+}
+
+.upload-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-bottom: 20px;
+}
+
+.upload-zone:hover {
+  border-color: var(--brand-blue);
+  background: var(--brand-light);
+}
+
+.upload-icon {
+  display: block;
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.upload-text {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e3a5f;
+  margin-bottom: 6px;
+}
+
+.upload-hint {
+  display: block;
+  font-size: 13px;
+  color: #888;
+}
+
+.recent-uploads h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e3a5f;
+  margin-bottom: 12px;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.upload-file-icon {
+  font-size: 24px;
+}
+
+.upload-file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-file-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+}
+
+.upload-file-meta {
+  font-size: 12px;
+  color: #888;
+}
+
+.professor.avatar {
+  background: linear-gradient(135deg, #1565c0, #42a5f5);
+}
+
+.lecturer-dashboard .harvard-avatar.professor {
+  background: linear-gradient(135deg, #1565c0, #42a5f5);
+}
+
+/* ========== AI ASSISTANT ENHANCED ========== */
+.ai-tabs {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.ai-tab {
+  padding: 8px 16px;
+  background: #f0f4f8;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.ai-tab:hover {
+  background: #e0e8f0;
+}
+
+.ai-tab.active {
+  background: linear-gradient(135deg, var(--brand-blue), var(--brand-dark));
+  color: white;
+}
+
+.ai-feature-form {
+  padding: 20px;
+}
+
+.ai-feature-form .form-section {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.ai-feature-form h4 {
+  font-size: 20px;
+  color: #1e3a5f;
+  margin-bottom: 8px;
+}
+
+.ai-feature-form > .form-section > p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.cv-form-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e8f0;
+}
+
+.cv-form-section:last-of-type {
+  border-bottom: none;
+}
+
+.cv-form-section h5 {
+  font-size: 15px;
+  color: #1e3a5f;
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.experience-item {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #e0e8f0;
+}
+
+.result-box {
+  margin-top: 24px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e0e8f0;
+}
+
+.result-box h4 {
+  font-size: 16px;
+  color: #1e3a5f;
+  margin-bottom: 12px;
+}
+
+.result-content {
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 12px;
 }

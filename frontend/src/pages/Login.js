@@ -20,18 +20,24 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      const data = await authService.login({ id: userId, password });
+      const response = await fetch('http://localhost:8000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: userId, password })
+      });
+      const data = await response.json();
+      
       if (data.token) {
         login(data, data.token);
-        const role = data.role || data.user?.role || 'student';
-        if (role === 'admin') navigate('/admin');
-        else if (role === 'lecturer') navigate('/lecturer');
-        else navigate('/app');
+        const role = data.role;
+        if (role === 'admin') navigate('/app/admin');
+        else if (role === 'faculty' || role === 'lecturer') navigate('/lecturer');
+        else navigate('/student');
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Invalid ID or password');
       }
-    } catch {
-      setError('An error occurred. Please try again.');
+    } catch (err) {
+      setError('Connection error. Please make sure backend is running on port 8000');
     }
     setLoading(false);
   };
@@ -49,7 +55,7 @@ const Login = () => {
         <div className="login-box">
           {!campus && (
             <div className="auth-logo">
-              <h2>Smart<span>BDU</span></h2>
+              <img src="/logo.png" alt="SmartBDU" className="login-logo-img" />
               <p>Smart Campus for Bahir Dar University</p>
             </div>
           )}

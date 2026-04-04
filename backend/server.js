@@ -10,6 +10,8 @@ const assignmentRoutes = require('./routes/assignmentRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
 const directoryRoutes = require('./routes/directoryRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const fileRoutes = require('./routes/fileRoutes');
+const postRoutes = require('./routes/postRoutes');
 
 const app = express();
 
@@ -17,6 +19,7 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static('uploads'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/announcements', announcementRoutes);
@@ -26,12 +29,14 @@ app.use('/api/assignments', assignmentRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/directory', directoryRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/posts', postRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'SmartBDU API is running' });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

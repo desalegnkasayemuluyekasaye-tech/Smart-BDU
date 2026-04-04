@@ -98,20 +98,33 @@ const updateUserProfile = async (req, res) => {
 
 const createUserByAdmin = async (req, res) => {
   try {
-    const { name, email, password, studentId, department, year, phone, role } = req.body;
+    const { name, email, studentId, employeeId, department, year, phone, role, departments, classes } = req.body;
     
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
+    // Auto-generate initial password from ID
+    let initialPassword;
+    if (role === 'faculty' && employeeId) {
+      initialPassword = employeeId; // Teacher password = employeeId
+    } else if (studentId) {
+      initialPassword = studentId; // Student password = studentId
+    } else {
+      initialPassword = email.split('@')[0]; // Fallback
+    }
+
     const user = await User.create({ 
       name, 
       email, 
-      password, 
-      studentId, 
+      password: initialPassword, 
+      studentId: role === 'student' ? studentId : undefined,
+      employeeId: role === 'faculty' ? employeeId : undefined,
       department, 
       year, 
       phone,
-      role: role || 'student' 
+      role: role || 'student',
+      departments: role === 'faculty' ? departments : undefined,
+      classes: role === 'faculty' ? classes : undefined
     });
     
     res.status(201).json({
@@ -119,7 +132,9 @@ const createUserByAdmin = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      studentId: user.studentId
+      studentId: user.studentId,
+      employeeId: user.employeeId,
+      initialPassword: initialPassword // Return this so admin can inform user
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -148,4 +163,35 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, createUserByAdmin, getAllUsers, deleteUser };
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if current password matches (unless it's initial login)
+    const isMatch = await user.matchPassword(currentPassword);
+    
+    // Allow password change if:
+    // 1. Current password matches, OR
+    // 2. User is using their initial password (studentId or employeeId)
+    const isInitialPassword = (user.studentId && currentPassword === user.studentId) ||
+                             (user.employeeId && currentPassword === user.employeeId);
+    
+    if (!isMatch && !isInitialPassword) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { registerUser, loginUser, getUserProfile, updateUserProfile, createUserByAdmin, getAllUsers, deleteUser, changePassword };

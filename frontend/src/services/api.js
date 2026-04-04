@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'http://localhost:8000/api';
 
 const getToken = () => localStorage.getItem('smartbdu_token');
 
@@ -112,6 +112,56 @@ export const aiService = {
       body: JSON.stringify({ message, history })
     });
     return res.json();
+  },
+  generateRoadmap: async (data) => {
+    const res = await fetch(`${API_URL}/ai/roadmap`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  generateCV: async (data) => {
+    const res = await fetch(`${API_URL}/ai/cv`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  }
+};
+
+export const fileService = {
+  upload: async (formData) => {
+    const token = getToken();
+    const res = await fetch(`${API_URL}/files/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+    return res.json();
+  },
+  getAll: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_URL}/files?${query}`, { headers: headers() });
+    return res.json();
+  },
+  getMyFiles: async () => {
+    const res = await fetch(`${API_URL}/files/my-files`, { headers: headers() });
+    return res.json();
+  },
+  download: (id) => {
+    const token = getToken();
+    window.open(`${API_URL}/files/download/${id}?token=${token}`, '_blank');
+  },
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/files/${id}`, {
+      method: 'DELETE',
+      headers: headers()
+    });
+    return res.json();
   }
 };
 
@@ -148,5 +198,32 @@ export const adminService = {
       throw new Error(data.message || 'Request failed');
     }
     return data;
+  }
+};
+
+export const postService = {
+  create: async (postData) => {
+    const res = await fetch(`${API_URL}/posts`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(postData)
+    });
+    return res.json();
+  },
+  getAll: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_URL}/posts?${query}`, { headers: headers() });
+    return res.json();
+  },
+  getMyPosts: async () => {
+    const res = await fetch(`${API_URL}/posts/my-posts`, { headers: headers() });
+    return res.json();
+  },
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/posts/${id}`, {
+      method: 'DELETE',
+      headers: headers()
+    });
+    return res.json();
   }
 };

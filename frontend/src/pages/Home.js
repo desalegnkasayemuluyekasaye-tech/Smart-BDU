@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import bdu1 from "../assets/bdu1.jpg";
-import bdu2 from "../assets/images.jpg";
+import bduMainImage from "../assets/bdu-main-image.png";
+import bdu2 from "../assets/bdu2.jpg";
+import polyCampus from "../assets/poly-campus-photo.png";
 
-const slides = [bdu1, bdu2];
+const slides = [bduMainImage, bdu2, polyCampus];
 
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,8 +27,7 @@ const Home = () => {
 
       {/* ===== NAVBAR ===== */}
       <nav className="home-nav">
-        <div className="nav-brand">Smart<span>BDU</span></div>
-
+        <img src="/logo.png" alt="SmartBDU" className="nav-logo-img" />
         <button
           className={`hamburger ${menuOpen ? "open" : ""}`}
           onClick={() => setMenuOpen(!menuOpen)}
@@ -77,7 +77,7 @@ const Home = () => {
       <section className="about-section" id="about">
         <div className="about-image-wrap">
           <img
-            src="https://images.unsplash.com/photo-1607237138185-eedd9c632b0b?auto=format&fit=crop&w=800&q=80"
+            src={bduMainImage}
             alt="Bahir Dar University"
             className="about-image"
           />
@@ -139,19 +139,19 @@ const Home = () => {
             <ul className="footer-contact-list">
               <li>
                 <a href="mailto:info@smartbdu.edu.et" className="footer-contact-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="footer-icon"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="footer-icon"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" /></svg>
                   info@smartbdu.edu.et
                 </a>
               </li>
               <li>
                 <a href="tel:+251582205942" className="footer-contact-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="footer-icon"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="footer-icon"><path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.46.57 3.58a1 1 0 0 1-.25 1.01l-2.2 2.2z" /></svg>
                   +251 58 220 5942
                 </a>
               </li>
               <li>
                 <a href="https://maps.google.com/?q=Bahir+Dar+University" target="_blank" rel="noopener noreferrer" className="footer-contact-item">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="footer-icon"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="footer-icon"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg>
                   Bahir Dar, Ethiopia
                 </a>
               </li>
@@ -162,16 +162,16 @@ const Home = () => {
             <h4 className="footer-col-title">Follow Us</h4>
             <div className="social-icons">
               <a href="https://t.me/smartbdu" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="Telegram">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.67l-2.94-.918c-.64-.203-.658-.64.135-.954l11.57-4.461c.537-.194 1.006.131.959.884z"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.17 13.67l-2.94-.918c-.64-.203-.658-.64.135-.954l11.57-4.461c.537-.194 1.006.131.959.884z" /></svg>
               </a>
               <a href="https://linkedin.com/company/smartbdu" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="LinkedIn">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
               </a>
               <a href="https://facebook.com/smartbdu" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="Facebook">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.886v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z" /></svg>
               </a>
               <a href="https://twitter.com/smartbdu" target="_blank" rel="noopener noreferrer" className="social-icon-btn" aria-label="Twitter / X">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
               </a>
             </div>
           </div>
