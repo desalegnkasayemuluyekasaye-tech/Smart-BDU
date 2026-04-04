@@ -557,7 +557,6 @@ const LecturerDashboard = () => {
           {activeTab === 'announcements' && renderAnnouncements()}
         </div>
       </main>
-      <FloatingAI />
     </div>
   );
 };

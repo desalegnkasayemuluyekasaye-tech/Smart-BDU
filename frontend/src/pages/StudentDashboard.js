@@ -517,7 +517,6 @@ const StudentDashboard = () => {
           {activeTab === 'announcements' && renderAnnouncements()}
         </div>
       </main>
-      <FloatingAI />
     </div>
   );
 };
