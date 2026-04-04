@@ -27,6 +27,7 @@
 ## ✨ Features
 
 ### 👨‍🎓 Student Experience
+
 - **Interactive Dashboard:** Get a personalized daily rundown complete with active schedules, priority announcements, and pending assignments.
 - **Academic Hub:** Keep track of your Registered Courses, view detailed reading materials, and stay on top of deadlines.
 - **Campus Services:** Quickly view Cafeteria menus, Dormitory allocations, and Bus/Transport scheduling around the university.
@@ -34,7 +35,8 @@
 - **AI Academic Assistant:** Chat with an integrated Hugging Face AI (BlenderBot) tailored to answer university-related academic logic.
 
 ### 🛡️ Administrative Control (Admin Dashboard)
-- **Comprehensive User Management:** Securely create and delete student and faculty accounts. 
+
+- **Comprehensive User Management:** Securely create and delete student and faculty accounts.
 - **Course Administration:** Add new courses with associated credits, codes, and departments.
 - **System-Wide Announcements:** Push urgent, academic, or general announcements to the whole campus with customized priority tagging.
 
@@ -44,19 +46,19 @@
 
 The application strictly follows the MERN architectural path, ensuring an organized separation of concerns and robust data delivery.
 
-| **Layer** | **Technology Used** |
-| :--- | :--- |
-| **Frontend** | React 18, React Router v6, Context API |
-| **Styling** | Custom Vanilla CSS3 (Interactive Data Tables, Badges, Modals) |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB, Mongoose ODM |
-| **Authentication** | JSON Web Tokens (JWT) & bcrypt |
-| **AI Integration** | Hugging Face Inference API |
+| **Layer**          | **Technology Used**                                           |
+| :----------------- | :------------------------------------------------------------ |
+| **Frontend**       | React 18, React Router v6, Context API                        |
+| **Styling**        | Custom Vanilla CSS3 (Interactive Data Tables, Badges, Modals) |
+| **Backend**        | Node.js, Express.js                                           |
+| **Database**       | MongoDB, Mongoose ODM                                         |
+| **Authentication** | JSON Web Tokens (JWT) & bcrypt                                |
+| **AI Integration** | Hugging Face Inference API                                    |
 
 ```text
 smartBDU/
 ├── frontend/                # React SPA
-│   ├── public/             
+│   ├── public/
 │   └── src/
 │       ├── components/      # Common UI components (Sidebar/Layout)
 │       ├── pages/           # Admin Dashboard, Login, Schedule, etc.
@@ -75,15 +77,16 @@ smartBDU/
 
 ## 🔐 User Roles & Permissions
 
-SmartBDU utilizes strict Role-Based Access Control (RBAC). 
+SmartBDU utilizes strict Role-Based Access Control (RBAC).
 
-| Role | Permissions |
-| :--- | :--- |
-| 🧑‍🎓 `student` | Read-only access to schedules, courses, announcements. Can chat with the AI. |
-| 👨‍🏫 `faculty` | Manage and update their assigned courses, upload materials. |
-| 👑 `admin` | Full system access. Create/Delete users, issue major announcements, and establish courses via the **Admin Dashboard**. |
+| Role         | Permissions                                                                                                            |
+| :----------- | :--------------------------------------------------------------------------------------------------------------------- |
+| 🧑‍🎓 `student` | Read-only access to schedules, courses, announcements. Can chat with the AI.                                           |
+| 👨‍🏫 `faculty` | Manage and update their assigned courses, upload materials.                                                            |
+| 👑 `admin`   | Full system access. Create/Delete users, issue major announcements, and establish courses via the **Admin Dashboard**. |
 
 ### Default Test Accounts:
+
 - **Admin:** `admin@bdu.edu.et` / `admin123`
 - **Faculty:** `sarah.johnson@bdu.edu.et` / `faculty123`
 - **Student:** `abebe.kebede@bdu.edu.et` / `student123`
@@ -93,6 +96,7 @@ SmartBDU utilizes strict Role-Based Access Control (RBAC).
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - [Node.js](https://nodejs.org/en/) (v18+)
 - Local **MongoDB** server, or a valid **MongoDB Atlas** URI.
 
@@ -123,19 +127,23 @@ HUGGING_FACE_API_KEY=your_huggingface_sdk_key
 ### 3. Setup the Database
 
 <<<<<<< HEAD
+
 ```bash
 # Start both frontend and backend concurrently
 npm run dev
 ```
 
 The application runs on:
+
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:8000
 
 ### Seeding Sample Data
+
 =======
 Pre-populate the database with users, mock courses, and announcements:
->>>>>>> 45e060a04121bc2c83da91d79bd0595a714072e2
+
+> > > > > > > 45e060a04121bc2c83da91d79bd0595a714072e2
 
 ```bash
 cd backend
@@ -145,63 +153,66 @@ npm run seed
 ### 4. Running the App
 
 <<<<<<< HEAD
+
 ## API Reference
 
 ### Base URL
+
 ```
 http://localhost:5000/api
 ```
 
 ### Authentication Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/register` | Register a new user |
-| POST | `/auth/login` | Login (email or student ID) |
-| GET | `/auth/profile` | Get current user profile |
-| PUT | `/auth/profile` | Update user profile |
+| Method | Endpoint         | Description                 |
+| ------ | ---------------- | --------------------------- |
+| POST   | `/auth/register` | Register a new user         |
+| POST   | `/auth/login`    | Login (email or student ID) |
+| GET    | `/auth/profile`  | Get current user profile    |
+| PUT    | `/auth/profile`  | Update user profile         |
 
 ### Data Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/announcements` | List announcements (supports `?priority=&category=&limit=`) |
-| GET | `/announcements/:id` | Get single announcement |
-| GET | `/schedule` | List schedules (supports `?day=&department=&year=`) |
-| GET | `/schedule/:id` | Get single schedule |
-| GET | `/courses` | List courses |
-| GET | `/courses/:id` | Get course details |
-| GET | `/assignments` | List assignments |
-| GET | `/services` | List campus services |
-| GET | `/directory` | List directory contacts |
+| Method | Endpoint             | Description                                                 |
+| ------ | -------------------- | ----------------------------------------------------------- |
+| GET    | `/announcements`     | List announcements (supports `?priority=&category=&limit=`) |
+| GET    | `/announcements/:id` | Get single announcement                                     |
+| GET    | `/schedule`          | List schedules (supports `?day=&department=&year=`)         |
+| GET    | `/schedule/:id`      | Get single schedule                                         |
+| GET    | `/courses`           | List courses                                                |
+| GET    | `/courses/:id`       | Get course details                                          |
+| GET    | `/assignments`       | List assignments                                            |
+| GET    | `/services`          | List campus services                                        |
+| GET    | `/directory`         | List directory contacts                                     |
 
 ### AI Assistant
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/ai/chat` | Chat with AI assistant |
-| POST | `/ai/roadmap` | Generate learning roadmap |
-| POST | `/ai/cv` | Generate professional CV |
+| Method | Endpoint      | Description               |
+| ------ | ------------- | ------------------------- |
+| POST   | `/ai/chat`    | Chat with AI assistant    |
+| POST   | `/ai/roadmap` | Generate learning roadmap |
+| POST   | `/ai/cv`      | Generate professional CV  |
 
 ### File Upload (Faculty Only)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/files/upload` | Upload teaching materials |
-| GET | `/files` | List all uploaded files |
-| GET | `/files/my-files` | List my uploaded files |
-| GET | `/files/download/:id` | Download a file |
-| DELETE | `/files/:id` | Delete a file |
+| Method | Endpoint              | Description               |
+| ------ | --------------------- | ------------------------- |
+| POST   | `/files/upload`       | Upload teaching materials |
+| GET    | `/files`              | List all uploaded files   |
+| GET    | `/files/my-files`     | List my uploaded files    |
+| GET    | `/files/download/:id` | Download a file           |
+| DELETE | `/files/:id`          | Delete a file             |
 
 ### Admin Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/auth/admin/create-user` | Create new user |
-| GET | `/auth/admin/users` | List all users |
-| DELETE | `/auth/admin/users/:id` | Delete a user |
+| Method | Endpoint                  | Description     |
+| ------ | ------------------------- | --------------- |
+| POST   | `/auth/admin/create-user` | Create new user |
+| GET    | `/auth/admin/users`       | List all users  |
+| DELETE | `/auth/admin/users/:id`   | Delete a user   |
 
 **Request Body:**
+
 ```json
 {
   "message": "What courses should I take for Data Science?",
@@ -214,9 +225,9 @@ http://localhost:5000/api
 
 ### Health Check
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | API health status |
+| Method | Endpoint  | Description       |
+| ------ | --------- | ----------------- |
+| GET    | `/health` | API health status |
 
 ---
 
@@ -248,30 +259,32 @@ Home Page
 
 ## User Roles
 
-| Role | Permissions |
-|------|-------------|
+| Role      | Permissions                                  |
+| --------- | -------------------------------------------- |
 | `student` | Access all features, view personal dashboard |
-| `faculty` | Manage courses, post announcements |
-| `admin` | Full system access, user management |
+| `faculty` | Manage courses, post announcements           |
+| `admin`   | Full system access, user management          |
 
 ---
 
 ## Test Accounts
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@bdu.edu.et | admin123 |
-| Faculty | sarah.johnson@bdu.edu.et | faculty123 |
-| Student | abebe.kebede@bdu.edu.et | student123 |
+| Role    | Email                      | Password    |
+| ------- | -------------------------- | ----------- |
+| Admin   | admin@bdu.edu.et           | admin123    |
+| Faculty | solomon.tadesse@bdu.edu.et | lecturer123 |
+| Student | abebe.kebede@bdu.edu.et    | student123  |
 
 ---
 
 ## Available Scripts
 
 ### Root Level
+
 =======
 You can boot both servers concurrently from their respective directories:
->>>>>>> 45e060a04121bc2c83da91d79bd0595a714072e2
+
+> > > > > > > 45e060a04121bc2c83da91d79bd0595a714072e2
 
 ```bash
 # Terminal 1 - Backend Server
@@ -282,6 +295,7 @@ npm run dev
 cd frontend
 npm start
 ```
+
 - **Live Frontend:** http://localhost:3000
 - **Live Backend:** http://localhost:4000
 
@@ -291,17 +305,17 @@ npm start
 
 SmartBDU exposes a robust standard REST API.
 
-| Endpoint | Method | Role | Action |
-|----------|:------:|:----:|--------|
-| `/api/auth/login` | `POST` | *Public* | Authenticate a user |
-| `/api/auth/admin/users` | `GET` | `admin` | Retrieve all platform users |
-| `/api/auth/admin/users/:id`| `DELETE` | `admin` | Erase a specific user |
-| `/api/courses` | `GET` | *Public* | Lookup available active courses |
-| `/api/courses` | `POST` | `admin` | Generate a new curriculum course |
-| `/api/announcements` | `POST` | `admin` | Post a site-wide broadcast |
-| `/api/ai/chat` | `POST` | `student/faculty` | Interact with the Hugging Face AI |
+| Endpoint                    |  Method  |       Role        | Action                            |
+| --------------------------- | :------: | :---------------: | --------------------------------- |
+| `/api/auth/login`           |  `POST`  |     _Public_      | Authenticate a user               |
+| `/api/auth/admin/users`     |  `GET`   |      `admin`      | Retrieve all platform users       |
+| `/api/auth/admin/users/:id` | `DELETE` |      `admin`      | Erase a specific user             |
+| `/api/courses`              |  `GET`   |     _Public_      | Lookup available active courses   |
+| `/api/courses`              |  `POST`  |      `admin`      | Generate a new curriculum course  |
+| `/api/announcements`        |  `POST`  |      `admin`      | Post a site-wide broadcast        |
+| `/api/ai/chat`              |  `POST`  | `student/faculty` | Interact with the Hugging Face AI |
 
-> *Note: Protected endpoints require an `Authorization: Bearer <token>` header.*
+> _Note: Protected endpoints require an `Authorization: Bearer <token>` header._
 
 ---
 
