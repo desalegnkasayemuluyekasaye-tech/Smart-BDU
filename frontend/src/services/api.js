@@ -1,4 +1,7 @@
-const API_URL = 'http://localhost:8000/api';
+const baseUrl = import.meta.env.VITE_API_URL
+  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+  : 'http://localhost:8000';
+export const API_URL = `${baseUrl}/api`;
 
 const getToken = () => localStorage.getItem('smartbdu_token');
 
@@ -65,6 +68,12 @@ export const announcementService = {
 };
 
 export const scheduleService = {
+  getMine: async () => {
+    const res = await fetch(`${API_URL}/schedule/me`, { headers: headers() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to load schedule');
+    return data;
+  },
   getAll: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/schedule?${query}`, { headers: headers() });
@@ -95,6 +104,12 @@ export const scheduleService = {
 };
 
 export const courseService = {
+  getMyCourses: async () => {
+    const res = await fetch(`${API_URL}/courses/me`, { headers: headers() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to load your courses');
+    return data;
+  },
   getAll: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/courses?${query}`, { headers: headers() });
@@ -150,9 +165,21 @@ export const assignmentService = {
     if (!res.ok) throw new Error(result.message || 'Failed to create assignment');
     return result;
   },
-  submit: async (id) => {
+  submit: async (id, payload = {}) => {
     const res = await fetch(`${API_URL}/assignments/${id}/submit`, {
+      method: 'PUT', headers: headers(), body: JSON.stringify(payload)
+    });
+    return res.json();
+  },
+  accept: async (id) => {
+    const res = await fetch(`${API_URL}/assignments/${id}/accept`, {
       method: 'PUT', headers: headers()
+    });
+    return res.json();
+  },
+  review: async (id, data) => {
+    const res = await fetch(`${API_URL}/assignments/${id}/review`, {
+      method: 'PUT', headers: headers(), body: JSON.stringify(data)
     });
     return res.json();
   },
