@@ -1,0 +1,92 @@
+/* ========== LECTURER DASHBOARD STYLES ========== */
+
+/* Lecturer sidebar specific */
+.lecturer-sidebar {
+  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+}
+
+.lecturer-avatar {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+}
+
+.lecturer-banner {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+}
+
+/* Pending assignment card */
+.assignment-card.pending {
+  border-left-color: #ff9800;
+  background: #fff8e1;
+}
+
+.due-badge.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status-badge.submitted {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-badge.graded {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Events list */
+.events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.event-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f7faff;
+  border-radius: 10px;
+  border-left: 3px solid #2e7d32;
+}
+
+.event-icon {
+  font-size: 24px;
+}
+
+.event-info {
+  flex: 1;
+}
+
+.event-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e3a5f;
+}
+
+.event-date {
+  font-size: 12px;
+  color: #666;
+  margin-top: 2px;
+}
+
+/* Quick link item hover */
+.quick-link-item:hover {
+  background: #e8f5e9;
+}

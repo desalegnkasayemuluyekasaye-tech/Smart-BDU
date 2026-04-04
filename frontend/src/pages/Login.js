@@ -26,6 +26,7 @@ const Login = () => {
         const role = data.role || data.user?.role || 'student';
         if (role === 'admin') navigate('/admin');
         else if (role === 'lecturer') navigate('/lecturer');
+        else if (role === 'student') navigate('/student');
         else navigate('/app');
       } else {
         setError(data.message || 'Login failed');
