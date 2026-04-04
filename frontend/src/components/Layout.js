@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import FloatingAI from './FloatingAI';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -84,6 +85,7 @@ const Layout = () => {
         </header>
         <Outlet />
       </main>
+      <FloatingAI />
     </div>
   );
 };

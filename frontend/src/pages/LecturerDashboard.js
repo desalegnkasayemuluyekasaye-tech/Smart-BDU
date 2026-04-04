@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { scheduleService, assignmentService, announcementService, courseService } from '../services/api';
+import FloatingAI from '../components/FloatingAI';
 import './LecturerDashboard.css';
 
 const LecturerDashboard = () => {
@@ -449,6 +450,7 @@ const LecturerDashboard = () => {
           {activeTab === 'announcements' && renderAnnouncements()}
         </div>
       </main>
+      <FloatingAI />
     </div>
   );
 };
