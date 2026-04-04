@@ -152,8 +152,8 @@ const seedAssignments = async () => {
     dueDate3.setDate(dueDate3.getDate() + 21);
 
     const assignments = [
-      { title: 'Implement Binary Search Tree', description: 'Implement a complete BST with insert, delete, and search operations in C++', courseName: 'Data Structures and Algorithms', courseCode: 'CSE301', dueDate: dueDate1, points: 100 },
-      { title: 'Design ER Diagram for Library System', description: 'Create an ER diagram for a library management system and normalize to 3NF', courseName: 'Database Management Systems', courseCode: 'CSE302', dueDate: dueDate2, points: 50 },
+      { title: 'Implement Binary Search Tree', description: 'Implement a complete BST with insert, delete, and search operations in C++', courseName: 'Data Structures and Algorithms', courseCode: 'CSE301', dueDate: dueDate1, points: 100, section: 'A' },
+      { title: 'Design ER Diagram for Library System', description: 'Create an ER diagram for a library management system and normalize to 3NF', courseName: 'Database Management Systems', courseCode: 'CSE302', dueDate: dueDate2, points: 50, section: 'B' },
       { title: 'Configure Network Topology', description: 'Design and configure a network topology with routers and switches using Cisco Packet Tracer', courseName: 'Computer Networks', courseCode: 'CSE303', dueDate: dueDate3, points: 50 },
     ];
 

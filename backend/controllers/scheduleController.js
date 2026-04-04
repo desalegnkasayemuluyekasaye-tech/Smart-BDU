@@ -1,5 +1,30 @@
 const Schedule = require('../models/Schedule');
 
+function escapeRegex(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+const getMySchedule = async (req, res) => {
+  try {
+    const name = (req.user.name || '').trim();
+    const first = name.split(/\s+/)[0] || '';
+    const or = [];
+    if (name) {
+      or.push({ instructor: new RegExp(`^${escapeRegex(name)}$`, 'i') });
+    }
+    if (first.length >= 2) {
+      or.push({ instructor: new RegExp(escapeRegex(first), 'i') });
+    }
+    if (or.length === 0) {
+      return res.json([]);
+    }
+    const schedules = await Schedule.find({ $or: or }).sort({ day: 1, startTime: 1 });
+    res.json(schedules);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getSchedule = async (req, res) => {
   try {
     const { day, year, department, section, semester } = req.query;
@@ -72,4 +97,4 @@ const deleteSchedule = async (req, res) => {
   }
 };
 
-module.exports = { getSchedule, createSchedule, createBatchSchedule, updateSchedule, deleteSchedule };
+module.exports = { getSchedule, getMySchedule, createSchedule, createBatchSchedule, updateSchedule, deleteSchedule };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { courseService, fileService, announcementService, scheduleService } from '../services/api';
+import { courseService, fileService, announcementService, scheduleService, assignmentService, API_URL } from '../services/api';
 import FloatingAI from '../components/FloatingAI';
 import './Admin.css';
 
@@ -9,12 +9,15 @@ const SIDEBAR_NAV = [
   { id: 'dashboard',     icon: '🏠', label: 'Dashboard' },
   { id: 'courses',       icon: '📚', label: 'My Courses' },
   { id: 'materials',     icon: '📤', label: 'Upload Materials' },
+  { id: 'assignments',   icon: '📝', label: 'Assignments' },
+  { id: 'submissions',   icon: '📥', label: 'Review Submissions' },
   { id: 'announcements', icon: '📢', label: 'Announcements' },
   { id: 'schedule',      icon: '📅', label: 'Schedule' },
 ];
 
-const EMPTY_MAT = { title: '', description: '', department: '', year: '', semester: '', section: '', category: 'lecture', url: '', type: 'pdf', courseCode: '' };
+const EMPTY_MAT = { title: '', description: '', department: '', year: '', semester: '', section: '', category: 'lecture', url: '', type: 'pdf', courseCode: '', linkCourseId: '' };
 const EMPTY_ANN = { title: '', content: '', category: 'general', priority: 'normal', targetType: 'section', department: '', batch: '', section: '' };
+const EMPTY_ASSIGN = { title: '', description: '', courseId: '', dueDate: '', dueTime: '', points: '', instructions: '' };
 
 const LecturerDashboard = () => {
   const { user, logout } = useAuth();
@@ -40,6 +43,12 @@ const LecturerDashboard = () => {
   const [schedules, setSchedules] = useState([]);
   const [schedulesLoading, setSchedulesLoading] = useState(false);
 
+  const [assignments, setAssignments] = useState([]);
+  const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+
+  const [submissions, setSubmissions] = useState([]);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
+
   // Forms
   const [matForm, setMatForm] = useState(EMPTY_MAT);
   const [uploadFile, setUploadFile] = useState(null);
@@ -48,32 +57,154 @@ const LecturerDashboard = () => {
   const [annForm, setAnnForm] = useState(EMPTY_ANN);
   const [announcementLoading, setAnnouncementLoading] = useState(false);
 
+  const [assignForm, setAssignForm] = useState(EMPTY_ASSIGN);
+  const [assignSubmitLoading, setAssignSubmitLoading] = useState(false);
+
   useEffect(() => {
     if (activeTab === 'dashboard') {
       fetchCourses();
       fetchFiles();
       fetchAnnouncements();
       fetchSchedules();
+      fetchMyAssignments();
+      fetchSubmissions();
     } else if (activeTab === 'courses') fetchCourses();
     else if (activeTab === 'materials') { fetchCourses(); fetchFiles(); }
+    else if (activeTab === 'assignments') {
+      (async () => {
+        setCoursesLoading(true);
+        setAssignmentsLoading(true);
+        try {
+          const courseList = await courseService.getMyCourses();
+          const list = Array.isArray(courseList) ? courseList : [];
+          setCourses(list);
+          const all = await assignmentService.getAll();
+          const arr = Array.isArray(all) ? all : [];
+          const ids = new Set(list.map(c => (c._id != null ? String(c._id) : '')).filter(Boolean));
+          const codes = new Set(list.map(c => (c.code || '').toUpperCase()).filter(Boolean));
+          setAssignments(arr.filter(a => {
+            const raw = a.course;
+            const cid = raw && typeof raw === 'object' && raw._id != null
+              ? String(raw._id)
+              : (raw != null ? String(raw) : '');
+            if (cid && ids.has(cid)) return true;
+            const code = (a.courseCode || '').toUpperCase();
+            return code && codes.has(code);
+          }));
+        } catch (e) {
+          console.error(e);
+          setError(e.message || 'Failed to load assignments');
+        }
+        setCoursesLoading(false);
+        setAssignmentsLoading(false);
+      })();
+    }
     else if (activeTab === 'announcements') fetchAnnouncements();
-    else if (activeTab === 'schedule') fetchSchedules();
+    else if (activeTab === 'submissions') {
+      fetchSubmissions();
+    }
     setMessage(''); setError('');
   }, [activeTab]);
 
-  const fetchCourses = async () => { setCoursesLoading(true); try { const all = await courseService.getAll({ department: user?.department || '' }); setCourses(all.filter(c => c.instructor === user?.name || c.instructor?.includes(user?.name?.split(' ')[0]))); } catch (e) { console.error(e); } setCoursesLoading(false); };
+  const fetchCourses = async () => {
+    setCoursesLoading(true);
+    try {
+      const list = await courseService.getMyCourses();
+      setCourses(Array.isArray(list) ? list : []);
+    } catch (e) {
+      console.error(e);
+      setError(e.message || 'Failed to load courses');
+    }
+    setCoursesLoading(false);
+  };
+
   const fetchFiles = async () => { setFilesLoading(true); try { const d = await fileService.getMyFiles(); setMyFiles(d.files || d || []); } catch (e) { console.error(e); } setFilesLoading(false); };
   const fetchAnnouncements = async () => { setAnnouncementsLoading(true); try { const d = await announcementService.getAll({ limit: 50 }); setAnnouncements(d.announcements || d || []); } catch (e) { console.error(e); } setAnnouncementsLoading(false); };
-  const fetchSchedules = async () => { setSchedulesLoading(true); try { const all = await scheduleService.getAll({ department: user?.department || '' }); setSchedules(all.filter(s => s.instructor === user?.name || s.instructor?.includes(user?.name?.split(' ')[0]))); } catch (e) { console.error(e); } setSchedulesLoading(false); };
+
+  const fetchSchedules = async () => {
+    setSchedulesLoading(true);
+    try {
+      const list = await scheduleService.getMine();
+      setSchedules(Array.isArray(list) ? list : []);
+    } catch (e) {
+      console.error(e);
+      setError(e.message || 'Failed to load schedule');
+    }
+    setSchedulesLoading(false);
+  };
+
+  const fetchMyAssignments = async () => {
+    setAssignmentsLoading(true);
+    try {
+      const mine = await courseService.getMyCourses().catch(() => []);
+      const courseList = Array.isArray(mine) ? mine : [];
+      const all = await assignmentService.getAll();
+      const arr = Array.isArray(all) ? all : [];
+      const ids = new Set(courseList.map(c => (c._id != null ? String(c._id) : '')).filter(Boolean));
+      const codes = new Set(courseList.map(c => (c.code || '').toUpperCase()).filter(Boolean));
+      setAssignments(arr.filter(a => {
+        const raw = a.course;
+        const cid = raw && typeof raw === 'object' && raw._id != null
+          ? String(raw._id)
+          : (raw != null ? String(raw) : '');
+        if (cid && ids.has(cid)) return true;
+        const code = (a.courseCode || '').toUpperCase();
+        return code && codes.has(code);
+      }));
+    } catch (e) {
+      console.error(e);
+    }
+    setAssignmentsLoading(false);
+  };
+
+  const fetchSubmissions = async () => {
+    setSubmissionsLoading(true);
+    try {
+      const all = await assignmentService.getAll();
+      const arr = Array.isArray(all) ? all : [];
+      // Filter for submitted assignments from lecturer's courses
+      const mine = await courseService.getMyCourses().catch(() => []);
+      const courseList = Array.isArray(mine) ? mine : [];
+      const ids = new Set(courseList.map(c => (c._id != null ? String(c._id) : '')).filter(Boolean));
+      const codes = new Set(courseList.map(c => (c.code || '').toUpperCase()).filter(Boolean));
+      
+      const submittedAssignments = arr.filter(a => {
+        const raw = a.course;
+        const cid = raw && typeof raw === 'object' && raw._id != null
+          ? String(raw._id)
+          : (raw != null ? String(raw) : '');
+        const isMyCourse = (cid && ids.has(cid)) || ((a.courseCode || '').toUpperCase() && codes.has((a.courseCode || '').toUpperCase()));
+        return isMyCourse && a.status === 'submitted';
+      });
+      
+      setSubmissions(submittedAssignments);
+    } catch (e) {
+      console.error(e);
+      setError(e.message || 'Failed to load submissions');
+    }
+    setSubmissionsLoading(false);
+  };
 
   const handleLogout = () => { logout(); navigate('/login'); };
   const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setMessage(''); setError(''); };
 
   const handleMaterialUpload = async (e) => {
     e.preventDefault();
-    if (!matForm.title || !matForm.department || !matForm.year || !matForm.semester) { setError('Title, Department, Year, and Semester are required'); return; }
-    if (!uploadFile && !matForm.url) { setError('Attach a file or provide a URL link'); return; }
-    
+    const urlOnly = !uploadFile && (matForm.url || '').trim();
+
+    if (urlOnly) {
+      if (!matForm.title?.trim() || !matForm.linkCourseId) {
+        setError('Title and a course are required to add a link');
+        return;
+      }
+    } else {
+      if (!matForm.title || !matForm.department || !matForm.year || !matForm.semester) {
+        setError('Title, Department, Year, and Semester are required');
+        return;
+      }
+      if (!uploadFile && !matForm.url) { setError('Attach a file or provide a URL link'); return; }
+    }
+
     setUploading(true); setError(''); setMessage('');
     try {
       if (uploadFile) {
@@ -83,16 +214,34 @@ const LecturerDashboard = () => {
         fd.append('department', matForm.department); fd.append('year', matForm.year);
         fd.append('semester', matForm.semester); fd.append('section', matForm.section);
         fd.append('category', matForm.category);
-        
+
         const res = await fileService.upload(fd);
+        const linkCourseId = matForm.linkCourseId;
         if (res.success || res.file?._id) {
-          setMessage(`File uploaded successfully for ${matForm.department} Year ${matForm.year} Sem ${matForm.semester} Section ${matForm.section || 'All'}`);
+          let msg = `File uploaded for ${matForm.department} Year ${matForm.year} Sem ${matForm.semester} Section ${matForm.section || 'All'}`;
+          if (linkCourseId && res.file?._id) {
+            const downloadUrl = `${API_URL}/files/download/${res.file._id}`;
+            await courseService.addMaterial(linkCourseId, {
+              title: matForm.title,
+              url: downloadUrl,
+              type: 'pdf',
+            });
+            msg += ' — linked to course materials.';
+          }
+          setMessage(msg);
           setUploadFile(null); setMatForm(EMPTY_MAT);
           fetchFiles();
+          if (linkCourseId) fetchCourses();
         } else { setError(res.message || 'Upload failed'); }
-      } else {
-        setMessage('Link material added (functionality needs backend support or course assignment)');
+      } else if (urlOnly) {
+        await courseService.addMaterial(matForm.linkCourseId, {
+          title: matForm.title.trim(),
+          url: matForm.url.trim(),
+          type: 'link',
+        });
+        setMessage('Link added to course materials.');
         setMatForm(EMPTY_MAT);
+        fetchCourses();
       }
     } catch (err) { setError(err.message || 'Failed to upload'); }
     setUploading(false);
@@ -112,6 +261,60 @@ const LecturerDashboard = () => {
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm('Delete this announcement?')) return;
     try { await announcementService.deleteAnnouncement(id); setMessage('Announcement deleted'); fetchAnnouncements(); } catch (err) { setError(err.message || 'Failed'); }
+  };
+
+  const handleAssignmentSubmit = async (e) => {
+    e.preventDefault();
+    if (!assignForm.title?.trim() || !assignForm.courseId || !assignForm.dueDate) {
+      setError('Title, course, and due date are required');
+      return;
+    }
+    const c = courses.find(x => String(x._id) === String(assignForm.courseId));
+    if (!c) {
+      setError('Select a valid course');
+      return;
+    }
+    setAssignSubmitLoading(true); setError(''); setMessage('');
+    try {
+      await assignmentService.create({
+        title: assignForm.title.trim(),
+        description: assignForm.description || undefined,
+        course: assignForm.courseId,
+        courseName: c.name,
+        courseCode: c.code,
+        dueDate: new Date(assignForm.dueDate),
+        dueTime: assignForm.dueTime || undefined,
+        points: assignForm.points ? parseInt(assignForm.points, 10) : undefined,
+        instructions: assignForm.instructions || undefined,
+      });
+      setMessage('Assignment created.');
+      setAssignForm(EMPTY_ASSIGN);
+      fetchMyAssignments();
+    } catch (err) {
+      setError(err.message || 'Failed to create assignment');
+    }
+    setAssignSubmitLoading(false);
+  };
+
+  const handleDeleteAssignment = async (id) => {
+    if (!window.confirm('Delete this assignment?')) return;
+    try {
+      await assignmentService.delete(id);
+      setMessage('Assignment deleted');
+      fetchMyAssignments();
+    } catch (err) {
+      setError(err.message || 'Failed to delete');
+    }
+  };
+
+  const handleReviewSubmission = async (id, accepted, feedback = '') => {
+    try {
+      await assignmentService.review(id, { accepted, feedback });
+      setMessage(`Submission ${accepted ? 'accepted' : 'rejected'}`);
+      fetchSubmissions();
+    } catch (err) {
+      setError(err.message || 'Failed to review submission');
+    }
   };
 
   const pageTitle = SIDEBAR_NAV.find(n => n.id === activeTab)?.label || 'Lecturer';
@@ -181,6 +384,8 @@ const LecturerDashboard = () => {
                 <div className="admin-quick-grid">
                   <button className="admin-quick-btn" onClick={() => switchTab('courses')}>📚 View Assigned Courses</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('materials')}>📤 Upload File</button>
+                  <button className="admin-quick-btn" onClick={() => switchTab('assignments')}>📝 Assignments</button>
+                  <button className="admin-quick-btn" onClick={() => switchTab('submissions')}>📥 Review Submissions</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('announcements')}>📢 Post Announcement</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('schedule')}>📅 View Schedule</button>
                 </div>
@@ -189,7 +394,9 @@ const LecturerDashboard = () => {
                 {[
                   { icon: '📚', val: courses.length, label: 'Assigned Courses', tab: 'courses' },
                   { icon: '📁', val: myFiles.length, label: 'Materials Uploaded', tab: 'materials' },
-                  { icon: '📢', val: announcements.length, label: 'Announcements', tab: 'announcements' },
+                  { icon: '📝', val: assignments.length, label: 'Assignments', tab: 'assignments' },
+                  { icon: '�', val: submissions.length, label: 'Pending Reviews', tab: 'submissions' },
+                  { icon: '�📢', val: announcements.length, label: 'Announcements', tab: 'announcements' },
                   { icon: '📅', val: schedules.length, label: 'Scheduled Classes', tab: 'schedule' },
                 ].map((s, i) => (
                   <div key={i} className="admin-stat-card" onClick={() => switchTab(s.tab)}>
@@ -256,9 +463,25 @@ const LecturerDashboard = () => {
                       </div>
                     </div>
 
+                    <div className="form-group" style={{marginTop:16}}>
+                      <label>Add to course materials (optional)</label>
+                      <select value={matForm.linkCourseId} onChange={e => setMatForm({ ...matForm, linkCourseId: e.target.value })}>
+                        <option value="">— Not linked to a course —</option>
+                        {courses.map(c => (
+                          <option key={c._id} value={c._id}>{c.code} — {c.name}</option>
+                        ))}
+                      </select>
+                      <p style={{ fontSize: 12, color: '#666', marginTop: 6 }}>Links the upload or URL to this course&apos;s material list for students.</p>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Material URL (optional — link-only, no file)</label>
+                      <input type="url" value={matForm.url} onChange={e => setMatForm({ ...matForm, url: e.target.value })} placeholder="https://..." />
+                    </div>
+
                     <div className="course-header-row" style={{marginTop:16}}>
-                      <div className="form-group"><label>Upload File (Max 50MB) *</label>
-                        <input type="file" onChange={e => setUploadFile(e.target.files[0])} accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar" />
+                      <div className="form-group"><label>Upload File (Max 50MB)</label>
+                        <input type="file" onChange={e => setUploadFile(e.target.files[0] || null)} accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar" />
                         {uploadFile && <div style={{fontSize:12,color:'#1565c0',marginTop:4,fontWeight:600}}>📎 {uploadFile.name}</div>}
                       </div>
                     </div>
@@ -269,7 +492,7 @@ const LecturerDashboard = () => {
                       </strong>
                     </div>
 
-                    <button type="submit" className="submit-btn" disabled={uploading} style={{maxWidth:260,marginTop:16}}>{uploading ? 'Uploading...' : '📤 Upload File'}</button>
+                    <button type="submit" className="submit-btn" disabled={uploading} style={{maxWidth:280,marginTop:16}}>{uploading ? 'Working...' : '📤 Save / upload'}</button>
                   </form>
                 </div>
               </div>
@@ -281,8 +504,8 @@ const LecturerDashboard = () => {
                     <thead><tr><th>Title</th><th>Course</th><th>Dept</th><th>Year</th><th>Sem</th><th>Sec</th><th>Date</th><th>Action</th></tr></thead>
                     <tbody>
                       {myFiles.length === 0 ? <tr><td colSpan={8} style={{textAlign:'center',color:'#999',padding:20}}>No files uploaded yet</td></tr>
-                        : myFiles.map((f, i) => (
-                          <tr key={i}>
+                        : myFiles.map((f) => (
+                          <tr key={f._id || f.fileName}>
                             <td><strong>{f.title}</strong></td><td>{f.courseCode||'-'}</td><td>{f.department}</td>
                             <td>{f.year?`Y${f.year}`:'-'}</td><td>{f.semester?`S${f.semester}`:'-'}</td><td>{f.section||'-'}</td>
                             <td>{new Date(f.createdAt).toLocaleDateString()}</td>
@@ -290,6 +513,133 @@ const LecturerDashboard = () => {
                           </tr>
                         ))
                       }
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ASSIGNMENTS */}
+          {activeTab === 'assignments' && (
+            <div className="tab-content">
+              <div className="admin-forms single-form">
+                <div className="form-section">
+                  <h2>Create assignment</h2>
+                  <p style={{ fontSize: 13, color: '#666', marginBottom: 20 }}>Tie work to one of your courses. Students with matching courses can view deadlines on their dashboard.</p>
+                  <form onSubmit={handleAssignmentSubmit}>
+                    <div className="form-group">
+                      <label>Course *</label>
+                      <select
+                        value={assignForm.courseId}
+                        onChange={e => setAssignForm({ ...assignForm, courseId: e.target.value })}
+                        required
+                        disabled={!courses.length}
+                      >
+                        <option value="">{courses.length ? 'Select course' : 'No courses — contact admin'}</option>
+                        {courses.map(c => (
+                          <option key={c._id} value={c._id}>{c.code} — {c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group"><label>Title *</label><input type="text" value={assignForm.title} onChange={e => setAssignForm({ ...assignForm, title: e.target.value })} required /></div>
+                    <div className="form-group"><label>Description</label><textarea value={assignForm.description} onChange={e => setAssignForm({ ...assignForm, description: e.target.value })} rows={3} /></div>
+                    <div className="course-header-row">
+                      <div className="form-group"><label>Due date *</label><input type="date" value={assignForm.dueDate} onChange={e => setAssignForm({ ...assignForm, dueDate: e.target.value })} required /></div>
+                      <div className="form-group"><label>Due time</label><input type="time" value={assignForm.dueTime} onChange={e => setAssignForm({ ...assignForm, dueTime: e.target.value })} /></div>
+                    </div>
+                    <div className="form-group"><label>Points</label><input type="number" min={0} value={assignForm.points} onChange={e => setAssignForm({ ...assignForm, points: e.target.value })} placeholder="e.g. 10" /></div>
+                    <div className="form-group"><label>Instructions</label><textarea value={assignForm.instructions} onChange={e => setAssignForm({ ...assignForm, instructions: e.target.value })} rows={2} /></div>
+                    <button type="submit" className="submit-btn" disabled={assignSubmitLoading || coursesLoading || !courses.length}>{assignSubmitLoading ? 'Creating...' : 'Create assignment'}</button>
+                  </form>
+                </div>
+              </div>
+              <div className="data-section">
+                <div className="section-header">
+                  <h2>Your assignments ({assignments.length})</h2>
+                  <button type="button" onClick={() => { fetchCourses(); fetchMyAssignments(); }} className="refresh-btn" disabled={assignmentsLoading || coursesLoading}>Refresh</button>
+                </div>
+                {assignmentsLoading || coursesLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Title</th><th>Course</th><th>Due</th><th>Points</th><th>Status sample</th><th>Action</th></tr></thead>
+                    <tbody>
+                      {assignments.length === 0 ? (
+                        <tr><td colSpan={6} style={{ textAlign: 'center', color: '#999', padding: 20 }}>No assignments for your courses yet</td></tr>
+                      ) : assignments.map(a => (
+                        <tr key={a._id}>
+                          <td><strong>{a.title}</strong></td>
+                          <td>{a.courseCode || '—'}<br /><small style={{ color: '#888' }}>{a.courseName || ''}</small></td>
+                          <td>{a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</td>
+                          <td>{a.points != null ? a.points : '—'}</td>
+                          <td><span className={`badge tag-${a.status || 'pending'}`}>{(a.status || 'pending').replace(/_/g, ' ')}</span></td>
+                          <td><button type="button" className="delete-btn" onClick={() => handleDeleteAssignment(a._id)}>Delete</button></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* SUBMISSIONS REVIEW */}
+          {activeTab === 'submissions' && (
+            <div className="tab-content">
+              <div className="data-section">
+                <div className="section-header">
+                  <h2>📥 Review Submissions ({submissions.length})</h2>
+                  <button type="button" onClick={fetchSubmissions} className="refresh-btn" disabled={submissionsLoading}>Refresh</button>
+                </div>
+                {submissionsLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Assignment</th><th>Student</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody>
+                      {submissions.length === 0 ? (
+                        <tr><td colSpan={5} style={{ textAlign: 'center', color: '#999', padding: 20 }}>No submissions to review</td></tr>
+                      ) : submissions.map(s => (
+                        <tr key={s._id}>
+                          <td>
+                            <strong>{s.title}</strong><br />
+                            <small style={{ color: '#888' }}>{s.courseName} ({s.courseCode})</small>
+                          </td>
+                          <td>
+                            {s.submittedBy?.name || 'Unknown Student'}<br />
+                            <small style={{ color: '#888' }}>ID: {s.submittedBy?.studentId || s.submittedBy?.employeeId || 'N/A'}</small>
+                          </td>
+                          <td>{s.submittedAt ? new Date(s.submittedAt).toLocaleString() : '—'}</td>
+                          <td>
+                            <span className={`badge tag-${s.status || 'pending'}`}>{(s.status || 'pending').replace(/_/g, ' ')}</span>
+                            {s.lecturerAccepted === true && <span className="badge tag-accepted">Accepted</span>}
+                            {s.lecturerAccepted === false && <span className="badge tag-rejected">Rejected</span>}
+                          </td>
+                          <td>
+                            {s.lecturerAccepted === null ? (
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button 
+                                  type="button" 
+                                  className="lec-btn" 
+                                  style={{ background: '#4caf50', color: 'white' }}
+                                  onClick={() => handleReviewSubmission(s._id, true)}
+                                >
+                                  ✓ Accept
+                                </button>
+                                <button 
+                                  type="button" 
+                                  className="lec-btn" 
+                                  style={{ background: '#f44336', color: 'white' }}
+                                  onClick={() => handleReviewSubmission(s._id, false)}
+                                >
+                                  ✗ Reject
+                                </button>
+                              </div>
+                            ) : (
+                              <span style={{ color: s.lecturerAccepted ? '#4caf50' : '#f44336', fontWeight: 'bold' }}>
+                                {s.lecturerAccepted ? 'Accepted' : 'Rejected'}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table></div>
                 )}

@@ -923,8 +923,27 @@
 
 .admin-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px; margin-bottom: 28px;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+@media (min-width: 400px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 520px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .admin-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .admin-stat-card {
