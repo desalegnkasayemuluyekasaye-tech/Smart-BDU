@@ -40,6 +40,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/student" element={<PrivateRoute><StudentDashboard /></PrivateRoute>} />
           <Route path="/lecturer" element={<PrivateRoute><LecturerDashboard /></PrivateRoute>} />
+          <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="/app" element={<PrivateRoute><Layout /></PrivateRoute>}>
             <Route index element={<Dashboard />} />
             <Route path="schedule" element={<Schedule />} />

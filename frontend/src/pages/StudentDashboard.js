@@ -1,108 +1,13 @@
 import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { scheduleService, courseService, announcementService, aiService } from '../services/api';
-=======
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { announcementService, scheduleService, assignmentService, courseService } from '../services/api';
+import { announcementService, scheduleService, assignmentService, courseService, fileService } from '../services/api';
 import FloatingAI from '../components/FloatingAI';
 import './StudentDashboard.css';
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
 
 const StudentDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [activeSection, setActiveSection] = useState('dashboard');
-  const [schedules, setSchedules] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (sidebarOpen && !e.target.closest('.harvard-nav') && !e.target.closest('.hamburger-btn')) {
-        setSidebarOpen(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [sidebarOpen]);
-
-  const fetchData = async () => {
-    try {
-      const [scheduleData, courseData, announcementData] = await Promise.all([
-        scheduleService.getAll(),
-        courseService.getAll(),
-        announcementService.getAll()
-      ]);
-      setSchedules(scheduleData.schedules || scheduleData || []);
-      setCourses(courseData.courses || courseData || []);
-      setAnnouncements(announcementData.announcements || announcementData || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
-  const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'ST';
-
-  const mockCourses = [
-    { code: 'CSE 301', name: 'Data Structures', credits: 4, grade: 'A', instructor: 'Dr. Alem' },
-    { code: 'CSE 302', name: 'Algorithms', credits: 4, grade: 'A-', instructor: 'Dr. Mulu' },
-    { code: 'CSE 303', name: 'Database Systems', credits: 3, grade: 'B+', instructor: 'Dr. Sintayehu' },
-    { code: 'MATH 201', name: 'Linear Algebra', credits: 3, grade: 'B', instructor: 'Prof. Tadesse' },
-    { code: 'ENG 101', name: 'Technical Writing', credits: 2, grade: 'A', instructor: 'Dr. Tigist' }
-  ];
-
-  const mockSchedule = [
-    { time: '08:00 - 09:30', course: 'Data Structures', room: 'Room 201', days: ['Sun', 'Tue'] },
-    { time: '10:00 - 11:30', course: 'Algorithms', room: 'Lab 3', days: ['Mon', 'Wed'] },
-    { time: '14:00 - 15:30', course: 'Database Systems', room: 'Room 105', days: ['Tue', 'Thu'] }
-  ];
-
-  const mockAnnouncements = [
-    { title: 'Midterm Exam Schedule', date: 'Apr 5, 2026', type: 'academic' },
-    { title: 'Library Hours Extended', date: 'Apr 3, 2026', type: 'general' },
-    { title: 'Research Symposium 2026', date: 'Apr 1, 2026', type: 'event' }
-  ];
-
-  const quickLinks = [
-    { icon: '📚', label: 'My Courses', path: '/app/courses' },
-    { icon: '📅', label: 'Schedule', path: '/app/schedule' },
-    { icon: '📢', label: 'Announcements', path: '/app/announcements' },
-    { icon: '🤖', label: 'AI Assistant', path: '/app/ai-assistant' },
-    { icon: '👥', label: 'Directory', path: '/app/directory' },
-    { icon: '️', label: 'Services', path: '/app/services' }
-  ];
-
-  return (
-    <div className="harvard-dashboard">
-      {/* TOP NAVIGATION */}
-      <header className="harvard-header">
-        <div className="harvard-header-left">
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-=======
   const [activeTab, setActiveTab] = useState('dashboard');
   const [announcements, setAnnouncements] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState([]);
@@ -113,6 +18,12 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [courseFiles, setCourseFiles] = useState([]);
+  const [submittingId, setSubmittingId] = useState(null);
+  const [submitMsg, setSubmitMsg] = useState('');
+  const [notifCount, setNotifCount] = useState(0);
+  const [notifList, setNotifList] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const today = days[new Date().getDay()];
@@ -145,14 +56,58 @@ const StudentDashboard = () => {
     return 'normal';
   };
 
+  const handleSubmitAssignment = async (id) => {
+    setSubmittingId(id);
+    setSubmitMsg('');
+    try {
+      await assignmentService.submit(id);
+      setSubmitMsg('Assignment submitted successfully!');
+      const [assignData, upcomingData] = await Promise.all([
+        assignmentService.getAll(),
+        assignmentService.getUpcoming()
+      ]);
+      setAllAssignments(assignData || []);
+      setUpcomingAssignments(upcomingData || []);
+    } catch (err) {
+      setSubmitMsg('Failed to submit. Try again.');
+    }
+    setSubmittingId(null);
+  };
+
+  const fetchCourseFiles = async (courseCode) => {
+    try {
+      const data = await fileService.getAll({ courseCode });
+      setCourseFiles(data.files || data || []);
+    } catch (e) {
+      setCourseFiles([]);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await announcementService.getNotifications();
+      setNotifCount(data.unreadCount || 0);
+      setNotifList(data.notifications || []);
+    } catch (e) { /* silent */ }
+  };
+
+  const handleOpenNotif = async () => {
+    setNotifOpen(v => !v);
+    if (!notifOpen && notifList.length > 0) {
+      const ids = notifList.map(n => n._id);
+      await announcementService.markAsRead(ids);
+      setNotifCount(0);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const userDepartment = user?.department || '';
         const [annData, schedData, allSchedData, assignData, upcomingData, courseData] = await Promise.all([
-          announcementService.getAll({ department: userDepartment, limit: 10 }),
-          scheduleService.getAll({ day: today, department: user?.department }),
-          scheduleService.getAll({ department: user?.department }),
+          announcementService.getAll({ limit: 10 }),
+          scheduleService.getAll({ day: today, department: user?.department, year: user?.year, section: user?.section }),
+          scheduleService.getAll({ department: user?.department, year: user?.year, section: user?.section }),
           assignmentService.getAll(),
           assignmentService.getUpcoming(),
           courseService.getAll({ department: userDepartment })
@@ -170,6 +125,14 @@ const StudentDashboard = () => {
     };
     if (user) fetchData();
   }, [today, user]);
+
+  // Poll notifications every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const renderDashboard = () => (
     <>
@@ -401,6 +364,7 @@ const StudentDashboard = () => {
 
   const renderAssignments = () => (
     <div className="page-content">
+      {submitMsg && <div className="success-message" style={{marginBottom:12}}>{submitMsg}</div>}
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">📝 All Assignments</h3>
@@ -413,13 +377,27 @@ const StudentDashboard = () => {
                   <div className="assignment-title">{assign.title}</div>
                   <div className="assignment-course">{assign.courseName} ({assign.courseCode})</div>
                   <div className="assignment-desc">{assign.description}</div>
+                  {assign.points && <div className="assignment-desc">Points: {assign.points}</div>}
                 </div>
                 <div className="assignment-due">
                   <div className={`due-badge ${getUrgencyClass(assign.dueDate)}`}>
                     {getDaysUntil(assign.dueDate)}
                   </div>
                   <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
-                  <div className="assignment-status">{assign.status}</div>
+                  <div className={`status-badge ${assign.status}`}>{assign.status}</div>
+                  {assign.status === 'pending' && (
+                    <button
+                      className="submit-btn"
+                      style={{marginTop:8,padding:'6px 14px',fontSize:13}}
+                      disabled={submittingId === assign._id}
+                      onClick={() => handleSubmitAssignment(assign._id)}
+                    >
+                      {submittingId === assign._id ? 'Submitting...' : '✅ Submit'}
+                    </button>
+                  )}
+                  {assign.status === 'graded' && assign.grade !== undefined && (
+                    <div className="due-date" style={{color:'#2e7d32',fontWeight:700}}>Grade: {assign.grade}</div>
+                  )}
                 </div>
               </div>
             ))}
@@ -440,7 +418,7 @@ const StudentDashboard = () => {
         {myCourses.length > 0 ? (
           <div className="courses-grid">
             {myCourses.map((course, idx) => (
-              <div key={idx} className="course-card" onClick={() => { setSelectedCourse(course); setActiveTab('courseDetail'); }}>
+              <div key={idx} className="course-card" onClick={() => { setSelectedCourse(course); setActiveTab('courseDetail'); fetchCourseFiles(course.code); }}>
                 <div className="course-code-badge">{course.code}</div>
                 <div className="course-name">{course.name}</div>
                 <div className="course-meta">
@@ -470,24 +448,32 @@ const StudentDashboard = () => {
               <h3>{selectedCourse.name}</h3>
             </div>
             <div className="detail-grid">
-              <div className="detail-item">
-                <span className="detail-label">Instructor</span>
-                <span className="detail-value">{selectedCourse.instructor}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Department</span>
-                <span className="detail-value">{selectedCourse.department}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Year/Semester</span>
-                <span className="detail-value">Year {selectedCourse.year} / Semester {selectedCourse.semester}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Credits</span>
-                <span className="detail-value">{selectedCourse.credits}</span>
-              </div>
+              <div className="detail-item"><span className="detail-label">Instructor</span><span className="detail-value">{selectedCourse.instructor}</span></div>
+              <div className="detail-item"><span className="detail-label">Department</span><span className="detail-value">{selectedCourse.department}</span></div>
+              <div className="detail-item"><span className="detail-label">Year/Semester</span><span className="detail-value">Year {selectedCourse.year} / Semester {selectedCourse.semester}</span></div>
+              <div className="detail-item"><span className="detail-label">Credits</span><span className="detail-value">{selectedCourse.credits}</span></div>
             </div>
-            
+
+            <h4 className="section-title">📁 Course Materials</h4>
+            {courseFiles.length > 0 ? (
+              <div className="assignments-list">
+                {courseFiles.map((f, idx) => (
+                  <div key={idx} className="assignment-card normal">
+                    <div className="assignment-info">
+                      <div className="assignment-title">{f.title}</div>
+                      <div className="assignment-course">{f.category} • {f.uploadedBy?.name || 'Instructor'}</div>
+                    </div>
+                    <div className="assignment-due">
+                      <button className="view-all-btn" onClick={() => fileService.download(f._id)}>⬇ Download</button>
+                      <div className="due-date">{formatDate(f.createdAt)}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">No materials uploaded yet</div>
+            )}
+
             <h4 className="section-title">📝 Course Assignments</h4>
             {allAssignments.filter(a => a.courseCode === selectedCourse.code).length > 0 ? (
               <div className="assignments-list">
@@ -498,10 +484,19 @@ const StudentDashboard = () => {
                       <div className="assignment-desc">{assign.description}</div>
                     </div>
                     <div className="assignment-due">
-                      <div className={`due-badge ${getUrgencyClass(assign.dueDate)}`}>
-                        {getDaysUntil(assign.dueDate)}
-                      </div>
+                      <div className={`due-badge ${getUrgencyClass(assign.dueDate)}`}>{getDaysUntil(assign.dueDate)}</div>
                       <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
+                      <div className={`status-badge ${assign.status}`}>{assign.status}</div>
+                      {assign.status === 'pending' && (
+                        <button className="submit-btn" style={{marginTop:8,padding:'6px 14px',fontSize:13}}
+                          disabled={submittingId === assign._id}
+                          onClick={() => handleSubmitAssignment(assign._id)}>
+                          {submittingId === assign._id ? 'Submitting...' : '✅ Submit'}
+                        </button>
+                      )}
+                      {assign.status === 'graded' && assign.grade !== undefined && (
+                        <div className="due-date" style={{color:'#2e7d32',fontWeight:700}}>Grade: {assign.grade}</div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -593,201 +588,43 @@ const StudentDashboard = () => {
       <main className="student-main">
         <header className="student-header">
           <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
             <span></span>
             <span></span>
             <span></span>
           </button>
-<<<<<<< HEAD
-          <div className="harvard-logo">
-            <img src="/logo.png" alt="SmartBDU" className="logo-img" />
-          </div>
-        </div>
-        
-        <nav className={`harvard-nav ${sidebarOpen ? 'open' : ''}`}>
-          <button className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveSection('dashboard'); setSidebarOpen(false); }}>
-            <span className="nav-icon">🏠</span> Dashboard
-          </button>
-          <button className={`nav-item ${activeSection === 'courses' ? 'active' : ''}`} onClick={() => { setActiveSection('courses'); setSidebarOpen(false); }}>
-            <span className="nav-icon">📚</span> Courses
-          </button>
-          <button className={`nav-item ${activeSection === 'schedule' ? 'active' : ''}`} onClick={() => { setActiveSection('schedule'); setSidebarOpen(false); }}>
-            <span className="nav-icon">📅</span> Schedule
-          </button>
-          <button className={`nav-item ${activeSection === 'announcements' ? 'active' : ''}`} onClick={() => { setActiveSection('announcements'); setSidebarOpen(false); }}>
-            <span className="nav-icon">📢</span> Announcements
-          </button>
-          <button className={`nav-item ${activeSection === 'ai' ? 'active' : ''}`} onClick={() => { navigate('/app/ai-assistant'); setSidebarOpen(false); }}>
-            <span className="nav-icon">🤖</span> AI Assistant
-          </button>
-        </nav>
-
-        <div className="harvard-header-right">
-          <div className="harvard-user-info">
-            <div className="harvard-user-details">
-              <span className="harvard-user-name">{user?.name || 'Student'}</span>
-              <span className="harvard-user-id">{user?.studentId || 'BDU123456'}</span>
-            </div>
-            <div className="harvard-avatar" onClick={handleLogout}>
-              {getInitials(user?.name)}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="harvard-main">
-        {/* WELCOME SECTION */}
-        <section className="harvard-welcome">
-          <div className="welcome-content">
-            <h1>{getGreeting()}, {user?.name?.split(' ')[0] || 'Student'}!</h1>
-            <p>Welcome to your personalized student portal. Here's what's happening today.</p>
-          </div>
-          <div className="welcome-stats">
-            <div className="stat-card">
-              <span className="stat-number">{mockCourses.length}</span>
-              <span className="stat-label">Active Courses</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">18</span>
-              <span className="stat-label">Credits This Semester</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">3.8</span>
-              <span className="stat-label">GPA</span>
-            </div>
-          </div>
-        </section>
-
-        {/* QUICK ACTIONS */}
-        <section className="harvard-quick-actions">
-          {quickLinks.map((link, idx) => (
-            <button key={idx} className="quick-action-btn" onClick={() => navigate(link.path)}>
-              <span className="quick-action-icon">{link.icon}</span>
-              <span className="quick-action-label">{link.label}</span>
-            </button>
-          ))}
-        </section>
-
-        {/* MAIN CONTENT GRID */}
-        <div className="harvard-grid">
-          
-          {/* COURSES CARD */}
-          <div className="harvard-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📚</span> My Courses</h3>
-              <button className="view-all-btn" onClick={() => setActiveSection('courses')}>View All →</button>
-            </div>
-            <div className="card-body">
-              <div className="courses-list">
-                {mockCourses.slice(0, 4).map((course, idx) => (
-                  <div key={idx} className="course-item">
-                    <div className="course-code">{course.code}</div>
-                    <div className="course-info">
-                      <span className="course-name">{course.name}</span>
-                      <span className="course-instructor">{course.instructor}</span>
-                    </div>
-                    <div className="course-grade">
-                      <span className="grade-badge">{course.grade}</span>
-                      <span className="credits">{course.credits} cr</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* SCHEDULE CARD */}
-          <div className="harvard-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📅</span> Today's Schedule</h3>
-              <button className="view-all-btn" onClick={() => setActiveSection('schedule')}>Full Schedule →</button>
-            </div>
-            <div className="card-body">
-              <div className="schedule-timeline">
-                {mockSchedule.map((item, idx) => (
-                  <div key={idx} className="schedule-item">
-                    <div className="schedule-time">{item.time}</div>
-                    <div className="schedule-bar">
-                      <span className="schedule-course">{item.course}</span>
-                      <span className="schedule-room">📍 {item.room}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* ANNOUNCEMENTS CARD */}
-          <div className="harvard-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📢</span> Latest Announcements</h3>
-              <button className="view-all-btn" onClick={() => setActiveSection('announcements')}>View All →</button>
-            </div>
-            <div className="card-body">
-              <div className="announcements-list">
-                {mockAnnouncements.map((ann, idx) => (
-                  <div key={idx} className={`announcement-item ${ann.type}`}>
-                    <div className="announcement-content">
-                      <span className="announcement-title">{ann.title}</span>
-                      <span className="announcement-date">{ann.date}</span>
-                    </div>
-                    <span className="announcement-arrow">→</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* AI ASSISTANT CARD */}
-          <div className="harvard-card ai-card">
-            <div className="card-header">
-              <h3><span className="card-icon">🤖</span> SmartBDU AI</h3>
-            </div>
-            <div className="card-body">
-              <p className="ai-description">Your personal AI academic assistant. Get help with courses, generate learning roadmaps, and more!</p>
-              <div className="ai-features">
-                <button className="ai-feature-btn" onClick={() => navigate('/app/ai-assistant')}>
-                  <span>💬</span> Chat with AI
-                </button>
-                <button className="ai-feature-btn" onClick={() => navigate('/app/ai-assistant')}>
-                  <span>🗺️</span> Learning Roadmap
-                </button>
-                <button className="ai-feature-btn" onClick={() => navigate('/app/ai-assistant')}>
-                  <span>📄</span> Generate CV
-                </button>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* BOTTOM INFO */}
-        <section className="harvard-footer-info">
-          <div className="info-card">
-            <span className="info-icon">🎯</span>
-            <div className="info-content">
-              <h4>Academic Progress</h4>
-              <p>3.8 GPA • 72 Credits Completed • 18 More to Graduate</p>
-            </div>
-          </div>
-          <div className="info-card">
-            <span className="info-icon">📊</span>
-            <div className="info-content">
-              <h4>Department</h4>
-              <p>{user?.department || 'Computer Science & Engineering'}</p>
-            </div>
-          </div>
-          <div className="info-card">
-            <span className="info-icon">📧</span>
-            <div className="info-content">
-              <h4>Email</h4>
-              <p>{user?.email || 'student@bdu.edu.et'}</p>
-            </div>
-          </div>
-        </section>
-=======
           <h1>{activeTab === 'dashboard' ? 'Dashboard' : activeTab === 'courseDetail' ? selectedCourse?.name : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
           <div className="header-user">
+            {/* Notification Bell */}
+            <div className="notif-wrap">
+              <button className="notif-bell" onClick={handleOpenNotif} title="Notifications">
+                🔔
+                {notifCount > 0 && <span className="notif-badge">{notifCount > 9 ? '9+' : notifCount}</span>}
+              </button>
+              {notifOpen && (
+                <div className="notif-dropdown">
+                  <div className="notif-header">
+                    <span>Notifications</span>
+                    <button className="notif-close" onClick={() => setNotifOpen(false)}>✕</button>
+                  </div>
+                  {notifList.length === 0 ? (
+                    <div className="notif-empty">No new notifications</div>
+                  ) : (
+                    notifList.map((n, idx) => (
+                      <div key={idx} className={`notif-item priority-${n.priority}`} onClick={() => { setNotifOpen(false); setActiveTab('announcements'); }}>
+                        <div className="notif-title">{n.title}</div>
+                        <div className="notif-meta">
+                          <span className={`badge tag-${n.category}`}>{n.category}</span>
+                          <span>{new Date(n.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                  <button className="notif-view-all" onClick={() => { setNotifOpen(false); setActiveTab('announcements'); }}>
+                    View All Announcements →
+                  </button>
+                </div>
+              )}
+            </div>
             <span className="header-avatar">{user?.name?.charAt(0)}</span>
           </div>
         </header>
@@ -800,14 +637,9 @@ const StudentDashboard = () => {
           {activeTab === 'courseDetail' && renderCourseDetail()}
           {activeTab === 'announcements' && renderAnnouncements()}
         </div>
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
       </main>
     </div>
   );
 };
 
-<<<<<<< HEAD
 export default StudentDashboard;
-=======
-export default StudentDashboard;
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2

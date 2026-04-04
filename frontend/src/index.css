@@ -1,16 +1,16 @@
 :root {
-  --primary-color: #1e3a5f;
-  --secondary-color: #2e7d32;
-  --accent-color: #ff9800;
-  --background-color: #f5f7fa;
+  --primary-color: #1565c0;
+  --secondary-color: #1e3a5f;
+  --accent-color: #42a5f5;
+  --background-color: #f0f4f8;
   --card-bg: #ffffff;
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --border-color: #e0e0e0;
+  --text-primary: #1a2a3a;
+  --text-secondary: #5a6a7a;
+  --border-color: #cdd8e8;
   --success-color: #4caf50;
   --warning-color: #ff9800;
   --danger-color: #f44336;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow: 0 2px 8px rgba(21, 101, 192, 0.1);
 }
 
 * {
@@ -91,13 +91,13 @@ body {
 }
 
 .nav-link-item.ai-btn {
-  background: linear-gradient(135deg, #ff9800, #f57c00);
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
   color: white;
 }
 
 .nav-link-item.ai-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(255,152,0,0.4);
+  box-shadow: 0 4px 15px rgba(21,101,192,0.4);
 }
 
 .nav-user {
@@ -110,7 +110,7 @@ body {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ff9800, #f57c00);
+  background: linear-gradient(135deg, #1565c0, #42a5f5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -298,7 +298,7 @@ body {
 }
 
 .btn-secondary:hover {
-  background-color: #1b5e20;
+  background-color: #0d47a1;
 }
 
 .form-group {
@@ -348,9 +348,12 @@ body {
 }
 
 .login-logo-img {
-  height: 60px;
-  width: auto;
+  height: 80px;
+  width: 80px;
+  border-radius: 50%;
+  object-fit: cover;
   margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
 .auth-logo p {
@@ -734,13 +737,13 @@ body {
   font-size: 20px;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
 }
 
 .get-started-btn:hover {
-  background-color: #f57c00;
+  background-color: #0d47a1;
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 152, 0, 0.5);
+  box-shadow: 0 8px 25px rgba(21, 101, 192, 0.5);
 }
 
 .home-footer {
@@ -798,7 +801,9 @@ body {
 
 .nav-logo-img {
   height: 44px;
-  width: auto;
+  width: 44px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .nav-links {
@@ -981,7 +986,7 @@ body {
 }
 
 .hero-accent {
-  background: linear-gradient(90deg, #ff9800, #ffd54f);
+  background: linear-gradient(90deg, #42a5f5, #90caf9);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1128,7 +1133,7 @@ body {
 .get-started-btn {
   display: inline-block;
   padding: 18px 52px;
-  background: linear-gradient(135deg, #ff9800, #f57c00);
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
   color: white;
   text-decoration: none;
   border-radius: 50px;
@@ -1136,7 +1141,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.5px;
   transition: all 0.3s ease;
-  box-shadow: 0 6px 28px rgba(255, 152, 0, 0.5);
+  box-shadow: 0 6px 28px rgba(21, 101, 192, 0.5);
   margin-top: 8px;
 }
 
@@ -1342,7 +1347,8 @@ body {
 .campus-logo-img {
   width: 80px;
   height: 80px;
-  border-radius: 16px;
+  border-radius: 50%;
+  object-fit: cover;
   box-shadow: 0 8px 24px rgba(21, 101, 192, 0.28);
 }
 
@@ -1705,8 +1711,8 @@ body {
 }
 
 .sd-blue   { background: linear-gradient(90deg, #1565c0, #1e88e5); }
-.sd-purple { background: linear-gradient(90deg, #6a1b9a, #8e24aa); }
-.sd-green  { background: linear-gradient(90deg, #2e7d32, #43a047); }
+.sd-purple { background: linear-gradient(90deg, #1e3a5f, #2c5282); }
+.sd-green  { background: linear-gradient(90deg, #0d47a1, #1565c0); }
 
 .sd-view-all {
   background: none;
@@ -1962,13 +1968,16 @@ body {
 
 .nav-logo-img {
   height: 44px;
-  width: auto;
+  width: 44px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .campus-logo-img {
   width: 90px;
-  height: auto;
-  border-radius: 12px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
   box-shadow: 0 8px 24px rgba(21, 101, 192, 0.28);
 }
 
@@ -2262,8 +2271,8 @@ body {
 }
 
 .grade-badge {
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #e3f2fd;
+  color: #1565c0;
   padding: 4px 10px;
   border-radius: 6px;
   font-size: 13px;

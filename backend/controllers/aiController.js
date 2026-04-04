@@ -60,15 +60,9 @@ const chatWithAI = async (req, res) => {
     console.error('AI Error:', error.response?.status, error.response?.data?.error || error.message);
     
     if (error.response?.status === 503) {
-<<<<<<< HEAD
-      return res.status(503).json({ 
-        error: 'AI model is loading. Please try again in few seconds.',
-        retry: true 
-=======
       return res.json({ 
         response: 'AI model is starting up. Please try again in a moment.',
         success: true 
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
       });
     }
 

@@ -1,204 +1,181 @@
-/* ========== LECTURER DASHBOARD STYLES ========== */
+/* ── Lecturer Dashboard — extends Admin.css layout ── */
 
-/* Lecturer sidebar specific */
-.lecturer-sidebar {
-  background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+/* Loading spinner */
+.lec-spinner {
+  width: 42px; height: 42px;
+  border: 4px solid #e3f2fd;
+  border-top-color: #1565c0;
+  border-radius: 50%;
+  animation: lec-spin 0.9s linear infinite;
+}
+@keyframes lec-spin { to { transform: rotate(360deg); } }
+
+/* Sidebar logo */
+.lec-sidebar-logo-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.lec-sidebar-logo {
+  width: 66px; height: 66px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
 }
 
-.lecturer-avatar {
-  background: linear-gradient(135deg, #4caf50, #2e7d32);
+/* Welcome banner */
+.lec-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #1565c0 0%, #1e3a5f 100%);
+  border-radius: 14px;
+  padding: 24px 28px;
+  color: white;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(21,101,192,0.25);
 }
+.lec-banner-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.lec-banner-sub   { font-size: 14px; opacity: 0.8; }
 
-.lecturer-banner {
-  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+/* Sub-tab bar */
+.lec-subtab-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
 }
-
-/* Pending assignment card */
-.assignment-card.pending {
-  border-left-color: #ff9800;
-  background: #fff8e1;
-}
-
-.due-badge.pending {
-  background: #fff3e0;
-  color: #e65100;
-}
-
-/* Status badge */
-.status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 11px;
+.lec-subtab {
+  padding: 10px 22px;
+  background: white;
+  border: 1.5px solid #dde8f8;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-badge.pending {
-  background: #fff3e0;
-  color: #e65100;
-}
-
-.status-badge.submitted {
-  background: #e3f2fd;
   color: #1565c0;
-}
-
-.status-badge.graded {
-  background: #e8f5e9;
-  color: #2e7d32;
-}
-
-/* Events list */
-.events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.event-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: #f7faff;
-  border-radius: 10px;
-  border-left: 3px solid #2e7d32;
-}
-
-.event-icon {
-  font-size: 24px;
-}
-
-.event-info {
-  flex: 1;
-}
-
-.event-title {
-  font-weight: 600;
-  font-size: 14px;
-  color: #1e3a5f;
-}
-
-.event-date {
-  font-size: 12px;
-  color: #666;
-  margin-top: 2px;
-}
-
-/* Quick link item hover */
-.quick-link-item:hover {
-  background: #e8f5e9;
-}
-
-/* Course clickable */
-.course-card.clickable {
-  cursor: pointer;
-}
-
-.course-card.clickable:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.2);
-  border-color: #2e7d32;
-}
-
-.course-materials {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #2e7d32;
-  font-weight: 600;
-}
-
-/* Selected course info */
-.selected-course-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  background: #e8f5e9;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-.change-course-btn {
-  margin-left: auto;
-  background: #2e7d32;
-  color: white;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-/* Forms */
-.material-form, .announcement-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.form-group label {
-  font-weight: 600;
-  font-size: 13px;
-  color: #1e3a5f;
-}
-
-.form-group input, 
-.form-group textarea, 
-.form-group select {
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-.form-group input:focus, 
-.form-group textarea:focus, 
-.form-group select:focus {
-  outline: none;
-  border-color: #2e7d32;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.submit-btn {
-  padding: 14px;
-  background: linear-gradient(135deg, #2e7d32, #1b5e20);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
+.lec-subtab:hover { background: #e3f0ff; border-color: #1565c0; }
+.lec-subtab-active {
+  background: linear-gradient(135deg, #1565c0, #1e3a5f);
+  color: white;
+  border-color: transparent;
+}
 
-.submit-btn:hover:not(:disabled) {
+/* Time badge */
+.lec-badge {
+  display: inline-block;
+  background: #e3f2fd;
+  color: #1565c0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Action button */
+.lec-btn {
+  display: inline-block;
+  padding: 5px 12px;
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #bbdefb;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.lec-btn:hover { background: #1565c0; color: white; border-color: #1565c0; }
+
+/* Tags */
+.lec-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e3f2fd;
+  color: #1565c0;
+  text-transform: capitalize;
+}
+.tag-general  { background: #e9ecef; color: #495057; }
+.tag-academic { background: #cce5ff; color: #004085; }
+.tag-event    { background: #d4edda; color: #155724; }
+.tag-urgent   { background: #f8d7da; color: #721c24; }
+
+/* Priority badges */
+.lec-prio {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.prio-normal    { background: #e2e3e5; color: #383d41; }
+.prio-important { background: #fff3cd; color: #856404; }
+.prio-urgent    { background: #f8d7da; color: #721c24; }
+
+/* Target box */
+.lec-target-box {
+  background: #f0f7ff;
+  border: 1.5px solid #bbdefb;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 4px;
+}
+.lec-target-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #1565c0;
+  margin-bottom: 10px;
+}
+.lec-target-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+/* Course selector grid */
+.lec-course-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+.lec-course-card {
+  background: white;
+  border: 2px solid #e3f2fd;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lec-course-card:hover {
+  border-color: #1565c0;
+  box-shadow: 0 4px 16px rgba(21,101,192,0.15);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
 }
-
-.submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.lec-course-selected {
+  border-color: #1565c0 !important;
+  background: #e3f2fd !important;
 }
+.lec-course-code  { display:inline-block; background:#1565c0; color:white; padding:3px 10px; border-radius:5px; font-size:11px; font-weight:700; margin-bottom:8px; }
+.lec-course-name  { font-size:14px; font-weight:600; color:#1e3a5f; margin-bottom:4px; }
+.lec-course-meta  { font-size:12px; color:#666; margin-bottom:4px; }
+.lec-course-files { font-size:12px; color:#1565c0; font-weight:600; }
 
-.success-message {
-  padding: 12px;
-  background: #e8f5e9;
-  color: #2e7d32;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-weight: 500;
+@media (max-width: 600px) {
+  .lec-banner { padding: 16px; }
+  .lec-banner-title { font-size: 18px; }
+  .lec-course-grid { grid-template-columns: 1fr 1fr; }
+  .lec-target-grid { grid-template-columns: 1fr; }
+  .lec-subtab-bar { gap: 6px; }
+  .lec-subtab { padding: 8px 14px; font-size: 13px; }
 }

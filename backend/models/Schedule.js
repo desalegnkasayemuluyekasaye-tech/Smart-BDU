@@ -11,6 +11,8 @@ const scheduleSchema = new mongoose.Schema({
   room: { type: String },
   building: { type: String },
   year: { type: Number },
+  semester: { type: Number },
+  section: { type: String },
   department: { type: String },
 }, { timestamps: true });
 
