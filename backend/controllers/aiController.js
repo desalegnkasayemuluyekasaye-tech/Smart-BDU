@@ -8,43 +8,48 @@ const chatWithAI = async (req, res) => {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    const userContext = buildUserContext(userData);
-    const fullMessage = userContext ? `${userContext}\n\nUser question: ${message}` : message;
+    let userContext = '';
+    if (userData) {
+      userContext = `You are a helpful academic assistant for Bahir Dar University. The user is a ${userData.role || 'student'}. `;
+      if (userData.name) userContext += `User name: ${userData.name}. `;
+      if (userData.department) userContext += `Department: ${userData.department}. `;
+      if (userData.year) userContext += `Year: ${userData.year}. `;
+      userContext += 'Keep answers concise and helpful.\n\n';
+    }
 
-    const conversationHistory = history 
-      ? history.slice(-6).map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        }))
-      : [];
-
-    conversationHistory.push({ role: 'user', content: fullMessage });
+    const fullMessage = userContext + message;
 
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill',
-      {
-        inputs: {
-          past_user_inputs: conversationHistory
-            .filter((_, i) => i % 2 === 0)
-            .map(msg => msg.content),
-          generated_responses: conversationHistory
-            .filter((_, i) => i % 2 === 1)
-            .map(msg => msg.content),
-          text: fullMessage
-        }
-      },
+      'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+      { inputs: fullMessage },
       {
         headers: {
           'Authorization': `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 30000
       }
     );
 
-    let aiResponse = response.data.generated_text || 
-      "I'm sorry, I couldn't process that request. Please try again.";
+    let aiResponse = '';
+    
+    if (Array.isArray(response.data) && response.data[0]) {
+      aiResponse = response.data[0].generated_text || '';
+    } else if (response.data.generated_text) {
+      aiResponse = response.data.generated_text;
+    }
 
-    aiResponse = cleanResponse(aiResponse);
+    if (aiResponse.includes(fullMessage)) {
+      aiResponse = aiResponse.replace(fullMessage, '').trim();
+    }
+
+    if (!aiResponse || aiResponse.length < 2) {
+      aiResponse = "I'm here to help! Please try asking your question differently.";
+    }
+
+    if (aiResponse.length > 400) {
+      aiResponse = aiResponse.substring(0, 400) + '...';
+    }
 
     res.json({ 
       response: aiResponse,
@@ -52,46 +57,27 @@ const chatWithAI = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Hugging Face API Error:', error.response?.data || error.message);
+    console.error('AI Error:', error.response?.status, error.response?.data?.error || error.message);
     
     if (error.response?.status === 503) {
-      return res.status(503).json({ 
-        error: 'AI model is loading. Please try again in a few seconds.',
-        retry: true 
+      return res.json({ 
+        response: 'AI model is starting up. Please try again in a moment.',
+        success: true 
       });
     }
 
-    res.status(500).json({ 
-      error: 'Failed to get AI response. Please try again.',
-      success: false 
+    if (error.response?.data?.error) {
+      return res.json({ 
+        response: `I'm having trouble connecting to the AI service. Please try again.`,
+        success: true 
+      });
+    }
+
+    res.json({ 
+      response: 'I apologize, but I\'m having trouble processing your request right now. Please try again.',
+      success: true 
     });
   }
-};
-
-const buildUserContext = (userData) => {
-  if (!userData) return null;
-  
-  let context = `You are a helpful academic assistant for Bahir Dar University. The user is a ${userData.role} named ${userData.name}.`;
-  
-  if (userData.department) {
-    context += ` Department: ${userData.department}.`;
-  }
-  if (userData.year) {
-    context += ` Year: ${userData.year}.`;
-  }
-  
-  return context;
-};
-
-const cleanResponse = (response) => {
-  let cleaned = response.replace(/<pad>/g, '').trim();
-  cleaned = cleaned.replace(/^.*?:/, '').trim();
-  
-  if (cleaned.length > 500) {
-    cleaned = cleaned.substring(0, 500) + '...';
-  }
-  
-  return cleaned || "I understand. Let me help you with that!";
 };
 
 module.exports = { chatWithAI };

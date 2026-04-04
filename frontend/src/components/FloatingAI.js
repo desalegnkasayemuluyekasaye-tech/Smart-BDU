@@ -7,7 +7,7 @@ const FloatingAI = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Hello! I\'m your SmartBDU AI Assistant. I can help you with:\n\n📚 Academic questions\n📅 Class schedules\n📝 Assignment information\n❓ Any questions about campus\n\nHow can I help you today?' }
+    { role: 'ai', content: 'Hello! I\'m your SmartBDU AI Assistant 🤖\n\nI can help you with:\n📚 Academic questions\n📅 Class schedules\n📝 Assignment information\n❓ Campus services\n\nHow can I help you today?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ const FloatingAI = () => {
     setLoading(true);
 
     try {
-      const history = messages.map(msg => ({
+      const history = messages.slice(-8).map(msg => ({
         role: msg.role === 'ai' ? 'assistant' : msg.role,
         content: msg.content
       }));
@@ -41,16 +41,14 @@ const FloatingAI = () => {
       
       const result = await aiService.chat(userMessage, history, userData);
       
-      if (result.success && result.response) {
+      if (result.response) {
         setMessages(prev => [...prev, { role: 'ai', content: result.response }]);
-      } else if (result.retry) {
-        setMessages(prev => [...prev, { role: 'ai', content: 'AI is loading. Please try again in a moment.' }]);
       } else {
-        setMessages(prev => [...prev, { role: 'ai', content: result.error || 'Sorry, I couldn\'t process that. Please try again.' }]);
+        setMessages(prev => [...prev, { role: 'ai', content: 'I\'m sorry, I couldn\'t process that. Please try again.' }]);
       }
     } catch (error) {
       console.error('AI Error:', error);
-      setMessages(prev => [...prev, { role: 'ai', content: 'Connection error. Please check if the server is running.' }]);
+      setMessages(prev => [...prev, { role: 'ai', content: 'Connection error. Please check if the server is running and try again.' }]);
     } finally {
       setLoading(false);
     }
@@ -63,11 +61,16 @@ const FloatingAI = () => {
     }
   };
 
+  const handleQuickQuestion = (q) => {
+    setInput(q);
+    setIsOpen(true);
+  };
+
   const quickQuestions = [
-    'When is my next class?',
-    'What assignments are due this week?',
-    'Where is the library located?',
-    'How do I contact my advisor?'
+    'What is my schedule today?',
+    'Show my pending assignments',
+    'Where is the library?',
+    'Contact my advisor'
   ];
 
   return (
@@ -105,7 +108,7 @@ const FloatingAI = () => {
 
           <div className="ai-quick-questions">
             {quickQuestions.map((q, idx) => (
-              <button key={idx} className="ai-quick-btn" onClick={() => { setInput(q); setIsOpen(true); }}>
+              <button key={idx} className="ai-quick-btn" onClick={() => handleQuickQuestion(q)}>
                 {q}
               </button>
             ))}
