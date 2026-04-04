@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/api';
+import { DEPARTMENTS } from '../constants';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -74,7 +75,12 @@ const Register = () => {
           
           <div className="form-group">
             <label>Department</label>
-            <input type="text" name="department" className="form-control" value={formData.department} onChange={handleChange} placeholder="Enter department" />
+            <select name="department" className="form-control" value={formData.department} onChange={handleChange} required>
+              <option value="">Select department</option>
+              {DEPARTMENTS.map(dept => (
+                <option key={dept} value={dept}>{dept}</option>
+              ))}
+            </select>
           </div>
           
           <div className="form-group">

@@ -6,6 +6,8 @@ const assignmentSchema = new mongoose.Schema({
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
   courseName: { type: String },
   courseCode: { type: String },
+  department: { type: String },
+  year: { type: Number },
   dueDate: { type: Date, required: true },
   dueTime: { type: String },
   points: { type: Number },

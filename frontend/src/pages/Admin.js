@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminService, courseService, announcementService, scheduleService } from '../services/api';
+import { DEPARTMENTS } from '../constants';
 import './Admin.css';
 
 const EMPTY_STUDENT = { name: '', email: '', studentId: '', department: '', year: '', section: '', phone: '' };
@@ -387,7 +388,18 @@ const Admin = () => {
                   <h2>Create Courses</h2>
                   <form onSubmit={handleCourseSubmit}>
                     <div className="course-header-row">
-                      <div className="form-group"><label>Department *</label><input type="text" value={courseHeader.department} onChange={e => setCourseHeader({...courseHeader,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select 
+                          className="form-control" 
+                          value={courseHeader.department} 
+                          onChange={e => setCourseHeader({...courseHeader,department:e.target.value})} 
+                          required
+                        >
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                        </select>
+                      </div>
                       <div className="form-group"><label>Batch / Year *</label><input type="number" value={courseHeader.year} onChange={e => setCourseHeader({...courseHeader,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
                     </div>
                     <div className="course-rows-label"><span>Courses for this Department &amp; Batch</span><span className="hint-text">{courseRows.length}/4 courses</span></div>
@@ -452,7 +464,18 @@ const Admin = () => {
                       </select>
                     </div>
                     {(announcementForm.targetType==='department'||announcementForm.targetType==='batch'||announcementForm.targetType==='section') && (
-                      <div className="form-group"><label>Department *</label><input type="text" value={announcementForm.department} onChange={e => setAnnouncementForm({...announcementForm,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select 
+                          className="form-control" 
+                          value={announcementForm.department} 
+                          onChange={e => setAnnouncementForm({...announcementForm,department:e.target.value})} 
+                          required
+                        >
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                        </select>
+                      </div>
                     )}
                     {(announcementForm.targetType==='batch'||announcementForm.targetType==='section') && (
                       <div className="form-group"><label>Batch / Year *</label><input type="text" value={announcementForm.batch} onChange={e => setAnnouncementForm({...announcementForm,batch:e.target.value})} placeholder="e.g. 3" required /></div>
@@ -517,7 +540,18 @@ const Admin = () => {
                   <h2>Create Class Schedule</h2>
                   <form onSubmit={handleScheduleSubmit}>
                     <div className="sched-header-grid">
-                      <div className="form-group"><label>Department *</label><input type="text" value={schedHeader.department} onChange={e => setSchedHeader({...schedHeader,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select 
+                          className="form-control" 
+                          value={schedHeader.department} 
+                          onChange={e => setSchedHeader({...schedHeader,department:e.target.value})} 
+                          required
+                        >
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                        </select>
+                      </div>
                       <div className="form-group"><label>Batch / Year *</label><input type="number" value={schedHeader.year} onChange={e => setSchedHeader({...schedHeader,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
                       <div className="form-group"><label>Semester</label><input type="number" value={schedHeader.semester} onChange={e => setSchedHeader({...schedHeader,semester:e.target.value})} placeholder="1 or 2" min="1" max="2" /></div>
                       <div className="form-group"><label>Section</label><input type="text" value={schedHeader.section} onChange={e => setSchedHeader({...schedHeader,section:e.target.value})} placeholder="e.g. A" /></div>
@@ -554,7 +588,14 @@ const Admin = () => {
                 <div className="section-header">
                   <h2>Schedules ({schedules.length})</h2>
                   <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
-                    <input type="text" placeholder="Filter dept..." value={schedFilter.department} onChange={e => setSchedFilter({...schedFilter,department:e.target.value})} style={{padding:'6px 10px',borderRadius:6,border:'1px solid #ddd',fontSize:13,width:140}} />
+                    <select 
+                      value={schedFilter.department} 
+                      onChange={e => setSchedFilter({...schedFilter,department:e.target.value})} 
+                      style={{padding:'6px 10px',borderRadius:6,border:'1px solid #ddd',fontSize:13,width:160}}
+                    >
+                      <option value="">Filter Dept...</option>
+                      {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                    </select>
                     <input type="text" placeholder="Year..." value={schedFilter.year} onChange={e => setSchedFilter({...schedFilter,year:e.target.value})} style={{padding:'6px 10px',borderRadius:6,border:'1px solid #ddd',fontSize:13,width:70}} />
                     <input type="text" placeholder="Section..." value={schedFilter.section} onChange={e => setSchedFilter({...schedFilter,section:e.target.value})} style={{padding:'6px 10px',borderRadius:6,border:'1px solid #ddd',fontSize:13,width:80}} />
                     <button onClick={fetchSchedules} className="refresh-btn" disabled={schedulesLoading}>Refresh</button>
@@ -630,7 +671,18 @@ const Admin = () => {
                 <div className="form-group"><label>Full Name *</label><input type="text" value={studentForm.name} onChange={e => setStudentForm({...studentForm,name:e.target.value})} placeholder="e.g. Abebe Kebede" required /></div>
                 <div className="form-group"><label>Student ID *</label><input type="text" value={studentForm.studentId} onChange={e => setStudentForm({...studentForm,studentId:e.target.value})} placeholder="e.g. BDU2024001" required /></div>
                 <div className="form-group"><label>Email *</label><input type="email" value={studentForm.email} onChange={e => setStudentForm({...studentForm,email:e.target.value})} placeholder="student@bdu.edu.et" required /></div>
-                <div className="form-group"><label>Department *</label><input type="text" value={studentForm.department} onChange={e => setStudentForm({...studentForm,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                <div className="form-group">
+                  <label>Department *</label>
+                  <select 
+                    className="form-control" 
+                    value={studentForm.department} 
+                    onChange={e => setStudentForm({...studentForm,department:e.target.value})} 
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                  </select>
+                </div>
                 <div className="modal-row">
                   <div className="form-group"><label>Batch / Year *</label><input type="number" value={studentForm.year} onChange={e => setStudentForm({...studentForm,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
                   <div className="form-group"><label>Section</label><input type="text" value={studentForm.section} onChange={e => setStudentForm({...studentForm,section:e.target.value})} placeholder="e.g. A" /></div>
@@ -646,7 +698,18 @@ const Admin = () => {
                 <div className="form-group"><label>Full Name *</label><input type="text" value={teacherForm.name} onChange={e => setTeacherForm({...teacherForm,name:e.target.value})} placeholder="e.g. Dr. Solomon Tadesse" required /></div>
                 <div className="form-group"><label>Employee ID *</label><input type="text" value={teacherForm.employeeId} onChange={e => setTeacherForm({...teacherForm,employeeId:e.target.value})} placeholder="e.g. TG001234" required /></div>
                 <div className="form-group"><label>Email *</label><input type="email" value={teacherForm.email} onChange={e => setTeacherForm({...teacherForm,email:e.target.value})} placeholder="teacher@bdu.edu.et" required /></div>
-                <div className="form-group"><label>Primary Department *</label><input type="text" value={teacherForm.department} onChange={e => setTeacherForm({...teacherForm,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                <div className="form-group">
+                  <label>Primary Department *</label>
+                  <select 
+                    className="form-control" 
+                    value={teacherForm.department} 
+                    onChange={e => setTeacherForm({...teacherForm,department:e.target.value})} 
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                  </select>
+                </div>
                 <div className="form-group"><label>All Departments <span className="hint-text">(comma-separated)</span></label><input type="text" value={teacherForm.departments} onChange={e => setTeacherForm({...teacherForm,departments:e.target.value})} placeholder="e.g. Computer Science, Software Engineering" /></div>
                 <div className="form-group"><label>Batches / Years <span className="hint-text">(comma-separated)</span></label><input type="text" value={teacherForm.batches} onChange={e => setTeacherForm({...teacherForm,batches:e.target.value})} placeholder="e.g. 1, 2, 3" /></div>
                 <div className="form-group"><label>Sections <span className="hint-text">(comma-separated)</span></label><input type="text" value={teacherForm.sections} onChange={e => setTeacherForm({...teacherForm,sections:e.target.value})} placeholder="e.g. A, B, C" /></div>
