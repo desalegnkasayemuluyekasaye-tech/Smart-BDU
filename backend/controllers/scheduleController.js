@@ -2,14 +2,44 @@ const Schedule = require('../models/Schedule');
 
 const getSchedule = async (req, res) => {
   try {
-    const { day, year, department } = req.query;
+    const { day, year, department, section, semester } = req.query;
     const query = {};
     if (day) query.day = day;
     if (year) query.year = parseInt(year);
     if (department) query.department = department;
+    if (section) query.section = section;
+    if (semester) query.semester = parseInt(semester);
 
-    const schedules = await Schedule.find(query).sort({ startTime: 1 });
+    const schedules = await Schedule.find(query).sort({ day: 1, startTime: 1 });
     res.json(schedules);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Create a full batch schedule at once (array of entries sharing dept/year/section/semester)
+const createBatchSchedule = async (req, res) => {
+  try {
+    const { department, year, semester, section, entries } = req.body;
+    if (!department || !year || !entries || !Array.isArray(entries) || entries.length === 0) {
+      return res.status(400).json({ message: 'department, year, and entries are required' });
+    }
+    const docs = entries.map(e => ({
+      department,
+      year: parseInt(year),
+      semester: semester ? parseInt(semester) : undefined,
+      section: section || undefined,
+      day: e.day,
+      startTime: e.startTime,
+      endTime: e.endTime,
+      courseName: e.courseName,
+      courseCode: e.courseCode || undefined,
+      instructor: e.instructor || undefined,
+      room: e.room || undefined,
+      building: e.building || undefined,
+    }));
+    const created = await Schedule.insertMany(docs);
+    res.status(201).json({ message: `${created.length} schedule entries created`, schedules: created });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -42,4 +72,4 @@ const deleteSchedule = async (req, res) => {
   }
 };
 
-module.exports = { getSchedule, createSchedule, updateSchedule, deleteSchedule };
+module.exports = { getSchedule, createSchedule, createBatchSchedule, updateSchedule, deleteSchedule };

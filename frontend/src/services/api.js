@@ -38,15 +38,29 @@ export const announcementService = {
     const res = await fetch(`${API_URL}/announcements?${query}`, { headers: headers() });
     return res.json();
   },
+  getNotifications: async () => {
+    const res = await fetch(`${API_URL}/announcements/notifications`, { headers: headers() });
+    return res.json();
+  },
+  markAsRead: async (ids) => {
+    const res = await fetch(`${API_URL}/announcements/mark-read`, {
+      method: 'PUT', headers: headers(), body: JSON.stringify({ ids })
+    });
+    return res.json();
+  },
   createAnnouncement: async (data) => {
     const res = await fetch(`${API_URL}/announcements`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify(data)
+      method: 'POST', headers: headers(), body: JSON.stringify(data)
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Failed to create announcement');
     return result;
+  },
+  deleteAnnouncement: async (id) => {
+    const res = await fetch(`${API_URL}/announcements/${id}`, {
+      method: 'DELETE', headers: headers()
+    });
+    return res.json();
   }
 };
 
@@ -54,6 +68,28 @@ export const scheduleService = {
   getAll: async (params = {}) => {
     const query = new URLSearchParams(params).toString();
     const res = await fetch(`${API_URL}/schedule?${query}`, { headers: headers() });
+    return res.json();
+  },
+  createBatch: async (data) => {
+    const res = await fetch(`${API_URL}/schedule/batch`, {
+      method: 'POST', headers: headers(), body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to create schedule');
+    return result;
+  },
+  create: async (data) => {
+    const res = await fetch(`${API_URL}/schedule`, {
+      method: 'POST', headers: headers(), body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to create schedule');
+    return result;
+  },
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/schedule/${id}`, {
+      method: 'DELETE', headers: headers()
+    });
     return res.json();
   }
 };
@@ -66,19 +102,29 @@ export const courseService = {
   },
   createCourse: async (data) => {
     const res = await fetch(`${API_URL}/courses`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify(data)
+      method: 'POST', headers: headers(), body: JSON.stringify(data)
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Failed to create course');
     return result;
   },
+  createLecturerCourse: async (data) => {
+    const res = await fetch(`${API_URL}/courses/lecturer`, {
+      method: 'POST', headers: headers(), body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to create course');
+    return result;
+  },
+  deleteCourse: async (id) => {
+    const res = await fetch(`${API_URL}/courses/${id}`, {
+      method: 'DELETE', headers: headers()
+    });
+    return res.json();
+  },
   addMaterial: async (courseId, materialData) => {
     const res = await fetch(`${API_URL}/courses/${courseId}/materials`, {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify(materialData)
+      method: 'POST', headers: headers(), body: JSON.stringify(materialData)
     });
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Failed to add material');
@@ -94,6 +140,32 @@ export const assignmentService = {
   },
   getUpcoming: async () => {
     const res = await fetch(`${API_URL}/assignments/upcoming`, { headers: headers() });
+    return res.json();
+  },
+  create: async (data) => {
+    const res = await fetch(`${API_URL}/assignments`, {
+      method: 'POST', headers: headers(), body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to create assignment');
+    return result;
+  },
+  submit: async (id) => {
+    const res = await fetch(`${API_URL}/assignments/${id}/submit`, {
+      method: 'PUT', headers: headers()
+    });
+    return res.json();
+  },
+  grade: async (id, data) => {
+    const res = await fetch(`${API_URL}/assignments/${id}/grade`, {
+      method: 'PUT', headers: headers(), body: JSON.stringify(data)
+    });
+    return res.json();
+  },
+  delete: async (id) => {
+    const res = await fetch(`${API_URL}/assignments/${id}`, {
+      method: 'DELETE', headers: headers()
+    });
     return res.json();
   }
 };

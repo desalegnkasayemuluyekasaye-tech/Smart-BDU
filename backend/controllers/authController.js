@@ -98,19 +98,19 @@ const updateUserProfile = async (req, res) => {
 
 const createUserByAdmin = async (req, res) => {
   try {
-    const { name, email, studentId, employeeId, department, year, phone, role, departments, classes } = req.body;
+    const { name, email, studentId, employeeId, department, year, section, phone, role, departments, batches, sections, classes } = req.body;
     
     const userExists = await User.findOne({ email });
     if (userExists) return res.status(400).json({ message: 'User already exists' });
 
     // Auto-generate initial password from ID
     let initialPassword;
-    if (role === 'faculty' && employeeId) {
-      initialPassword = employeeId; // Teacher password = employeeId
-    } else if (studentId) {
-      initialPassword = studentId; // Student password = studentId
+    if (role === 'student' && studentId) {
+      initialPassword = studentId;
+    } else if (employeeId) {
+      initialPassword = employeeId;
     } else {
-      initialPassword = email.split('@')[0]; // Fallback
+      initialPassword = email.split('@')[0];
     }
 
     const user = await User.create({ 
@@ -118,13 +118,16 @@ const createUserByAdmin = async (req, res) => {
       email, 
       password: initialPassword, 
       studentId: role === 'student' ? studentId : undefined,
-      employeeId: role === 'faculty' ? employeeId : undefined,
-      department, 
+      employeeId: (role === 'lecturer' || role === 'faculty' || role === 'admin') ? employeeId : undefined,
+      department,
+      section: role === 'student' ? section : undefined,
       year, 
       phone,
       role: role || 'student',
-      departments: role === 'faculty' ? departments : undefined,
-      classes: role === 'faculty' ? classes : undefined
+      departments: (role === 'lecturer' || role === 'faculty') ? departments : undefined,
+      batches: (role === 'lecturer' || role === 'faculty') ? batches : undefined,
+      sections: (role === 'lecturer' || role === 'faculty') ? sections : undefined,
+      classes: (role === 'lecturer' || role === 'faculty') ? classes : undefined
     });
     
     res.status(201).json({

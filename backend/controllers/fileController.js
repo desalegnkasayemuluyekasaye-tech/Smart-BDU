@@ -36,7 +36,7 @@ const uploadFile = async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
 
-    const { title, description, courseCode, department, category } = req.body;
+    const { title, description, courseCode, department, category, year, semester, section } = req.body;
 
     const file = await File.create({
       title: title || req.file.originalname,
@@ -47,6 +47,9 @@ const uploadFile = async (req, res) => {
       size: req.file.size,
       courseCode,
       department,
+      year: year ? parseInt(year) : undefined,
+      semester: semester ? parseInt(semester) : undefined,
+      section,
       uploadedBy: req.user._id,
       category: category || 'other'
     });
@@ -62,12 +65,14 @@ const uploadFile = async (req, res) => {
 
 const getFiles = async (req, res) => {
   try {
-    const { courseCode, department, category } = req.query;
+    const { courseCode, department, category, year, semester, section } = req.query;
     const filter = {};
-    
     if (courseCode) filter.courseCode = courseCode;
     if (department) filter.department = department;
-    if (category) filter.category = category;
+    if (category)   filter.category   = category;
+    if (year)       filter.year       = parseInt(year);
+    if (semester)   filter.semester   = parseInt(semester);
+    if (section)    filter.section    = section;
 
     const files = await File.find(filter)
       .populate('uploadedBy', 'name email')
@@ -98,6 +103,9 @@ const downloadFile = async (req, res) => {
     }
 
     const filePath = path.join(__dirname, '../../uploads', file.fileName);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'File not found on server' });
+    }
     res.download(filePath, file.originalName);
   } catch (error) {
     res.status(500).json({ message: error.message });

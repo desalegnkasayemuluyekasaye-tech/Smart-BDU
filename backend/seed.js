@@ -18,39 +18,12 @@ const connectDB = async () => {
 
 const seedUsers = async () => {
   try {
-<<<<<<< HEAD
-    // Clear existing test users
-    await User.deleteMany({ 
-      $or: [
-        { email: 'admin@bdu.edu.et' },
-        { email: 'sarah.johnson@bdu.edu.et' },
-        { email: 'abebe.kebede@bdu.edu.et' }
-      ]
-    });
-    console.log('Cleared existing test users');
-
-    // Create default users
-=======
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
     const users = [
       {
-        name: 'System Admin',
-        email: 'admin@bdu.edu.et',
-        password: 'admin123',
-        employeeId: 'ADM001',
-        role: 'admin',
-        department: 'IT',
-        phone: '+251911000000'
-      },
-      {
-        name: 'Dr. Sarah Johnson',
-        email: 'sarah.johnson@bdu.edu.et',
-        password: 'faculty123',
-<<<<<<< HEAD
-        employeeId: 'TG2024001',
-=======
-        employeeId: 'LEC001',
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
+        name: 'Dr. Solomon Tadesse',
+        email: 'solomon.tadesse@bdu.edu.et',
+        password: 'lecturer123',
+        employeeId: 'TG001234',
         role: 'lecturer',
         department: 'Computer Science',
         phone: '+251911111111'
@@ -64,53 +37,33 @@ const seedUsers = async () => {
         department: 'Computer Science',
         year: 3,
         phone: '+251922222222'
+      },
+      {
+        name: 'Admin User',
+        email: 'admin@bdu.edu.et',
+        password: 'admin123',
+        employeeId: 'ADMIN001',
+        role: 'admin',
+        department: 'Administration',
+        phone: '+251900000000'
       }
     ];
 
     for (const userData of users) {
-<<<<<<< HEAD
-      const user = new User(userData);
-      await user.save();
-      console.log(`Created user: ${userData.email} with role: ${userData.role}`);
-    }
-
-    // Verify users were created
-    const allUsers = await User.find({});
-    console.log(`Total users in database: ${allUsers.length}`);
-    allUsers.forEach(u => console.log(`  - ${u.email} (${u.role}, studentId: ${u.studentId || 'none'}, employeeId: ${u.employeeId || 'none'})`));
-
-    console.log('\n✅ Seeding completed successfully!');
-    console.log('\nTest Accounts:');
-    console.log('  Admin: admin@bdu.edu.et / admin123');
-    console.log('  Teacher: sarah.johnson@bdu.edu.et / faculty123 (or TG2024001)');
-    console.log('  Student: abebe.kebede@bdu.edu.et / student123 (or BDU2024001)');
-=======
-      const { email, studentId, employeeId } = userData;
-      let existingUser = await User.findOne({
+      const existing = await User.findOne({
         $or: [
-          { email },
-          { studentId },
-          { employeeId }
-        ].filter(q => q[Object.keys(q)[0]] !== undefined)
+          { email: userData.email },
+          userData.studentId ? { studentId: userData.studentId } : null,
+          userData.employeeId ? { employeeId: userData.employeeId } : null
+        ].filter(Boolean)
       });
-      
-      if (existingUser) {
-        existingUser.name = userData.name;
-        existingUser.password = userData.password;
-        existingUser.role = userData.role;
-        existingUser.department = userData.department;
-        existingUser.phone = userData.phone;
-        if (userData.employeeId) existingUser.employeeId = userData.employeeId;
-        if (userData.studentId) existingUser.studentId = userData.studentId;
-        await existingUser.save();
-        console.log(`Updated user: ${email}`);
+      if (!existing) {
+        await User.create(userData);
+        console.log(`Created user: ${userData.name} (${userData.role})`);
       } else {
-        const user = new User(userData);
-        await user.save();
-        console.log(`Created user: ${email}`);
+        console.log(`User already exists: ${userData.email}`);
       }
     }
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
   } catch (error) {
     console.error('User seeding error:', error);
   }
@@ -219,6 +172,8 @@ const seedAssignments = async () => {
 const runSeed = async () => {
   await connectDB();
   console.log('Starting seeding...');
+  // Delete existing users to re-create with correct fields
+  await User.deleteMany({ email: { $in: ['solomon.tadesse@bdu.edu.et', 'abebe.kebede@bdu.edu.et', 'admin@bdu.edu.et'] } });
   await seedUsers();
   await seedCourses();
   await seedSchedules();

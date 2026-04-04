@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { authService } from '../services/api';
 
 const Login = () => {
   const location = useLocation();
   const campus = location.state?.campus || null;
 
-  const [userId, setUserId] = useState('');
-  const [password, setPassword]   = useState('');
-  const [remember, setRemember]   = useState(false);
-  const [error, setError]         = useState('');
-  const [loading, setLoading]     = useState(false);
-  const { login }    = useAuth();
-  const navigate     = useNavigate();
+  const [userId, setUserId]     = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const { login }  = useAuth();
+  const navigate   = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,21 +25,13 @@ const Login = () => {
         body: JSON.stringify({ id: userId, password })
       });
       const data = await response.json();
-      
       if (data.token) {
         login(data, data.token);
-<<<<<<< HEAD
-        const role = data.role;
-        if (role === 'admin') navigate('/app/admin');
-        else if (role === 'faculty' || role === 'lecturer') navigate('/lecturer');
-        else navigate('/student');
-=======
         const role = data.role || data.user?.role || 'student';
         if (role === 'admin') navigate('/admin');
         else if (role === 'lecturer') navigate('/lecturer');
         else if (role === 'student') navigate('/student');
         else navigate('/app');
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
       } else {
         setError(data.message || 'Invalid ID or password');
       }

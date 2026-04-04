@@ -18,6 +18,9 @@ const fileSchema = new mongoose.Schema({
   size: Number,
   courseCode: String,
   department: String,
+  year: Number,
+  semester: Number,
+  section: String,
   uploadedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

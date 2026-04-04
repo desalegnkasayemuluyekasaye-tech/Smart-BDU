@@ -48,4 +48,27 @@ const getUpcomingAssignments = async (req, res) => {
   }
 };
 
-module.exports = { getAssignments, createAssignment, submitAssignment, getUpcomingAssignments };
+const deleteAssignment = async (req, res) => {
+  try {
+    await Assignment.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Assignment deleted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const gradeAssignment = async (req, res) => {
+  try {
+    const { grade, feedback } = req.body;
+    const assignment = await Assignment.findByIdAndUpdate(
+      req.params.id,
+      { grade, feedback, status: 'graded' },
+      { new: true }
+    );
+    res.json(assignment);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getAssignments, createAssignment, submitAssignment, getUpcomingAssignments, deleteAssignment, gradeAssignment };

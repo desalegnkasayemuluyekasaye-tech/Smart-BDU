@@ -1,966 +1,412 @@
 import React, { useState, useEffect } from 'react';
-<<<<<<< HEAD
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { courseService, postService } from '../services/api';
-=======
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { scheduleService, assignmentService, announcementService, courseService } from '../services/api';
+import { courseService, fileService, announcementService, scheduleService } from '../services/api';
 import FloatingAI from '../components/FloatingAI';
-import './LecturerDashboard.css';
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
+import './Admin.css';
+
+const SIDEBAR_NAV = [
+  { id: 'dashboard',     icon: '🏠', label: 'Dashboard' },
+  { id: 'courses',       icon: '📚', label: 'My Courses' },
+  { id: 'materials',     icon: '📤', label: 'Upload Materials' },
+  { id: 'announcements', icon: '📢', label: 'Announcements' },
+  { id: 'schedule',      icon: '📅', label: 'Schedule' },
+];
+
+const EMPTY_MAT = { title: '', description: '', department: '', year: '', semester: '', section: '', category: 'lecture', url: '', type: 'pdf', courseCode: '' };
+const EMPTY_ANN = { title: '', content: '', category: 'general', priority: 'normal', targetType: 'section', department: '', batch: '', section: '' };
 
 const LecturerDashboard = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-<<<<<<< HEAD
-  const [activeSection, setActiveSection] = useState('dashboard');
-  const [courses, setCourses] = useState([]);
-  const [myPosts, setMyPosts] = useState([]);
-  const [uploadModal, setUploadModal] = useState(false);
-  const [announcementModal, setAnnouncementModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  const [uploadForm, setUploadForm] = useState({ title: '', description: '', course: '', file: null });
-  const [announcementForm, setAnnouncementForm] = useState({ 
-    title: '', 
-    content: '', 
-    targetType: 'department',
-    targetDepartment: '',
-    targetYear: '',
-    category: 'announcement'
-  });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (sidebarOpen && !e.target.closest('.harvard-nav') && !e.target.closest('.hamburger-btn')) {
-        setSidebarOpen(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [sidebarOpen]);
-
-  const fetchData = async () => {
-    try {
-      const [courseData, postsData] = await Promise.all([
-        courseService.getAll(),
-        postService.getMyPosts()
-      ]);
-      setCourses(courseData.courses || courseData || []);
-      setMyPosts(postsData.posts || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!uploadForm.title || !uploadForm.course) {
-      alert('Please fill required fields');
-      return;
-    }
-    // File upload would use fileService here
-    alert('File upload - Use the Post section to create posts with materials');
-    setUploadModal(false);
-    setUploadForm({ title: '', description: '', course: '', file: null });
-  };
-
-  const handleAnnouncement = async (e) => {
-    e.preventDefault();
-    if (!announcementForm.title || !announcementForm.content) {
-      alert('Please fill required fields');
-      return;
-    }
-    try {
-      const postData = {
-        ...announcementForm,
-        targetYear: announcementForm.targetYear ? parseInt(announcementForm.targetYear) : undefined
-      };
-      await postService.create(postData);
-      alert('Post published successfully!');
-      setAnnouncementModal(false);
-      setAnnouncementForm({ title: '', content: '', targetType: 'department', targetDepartment: '', targetYear: '', category: 'announcement' });
-      fetchData();
-    } catch (error) {
-      console.error('Error posting:', error);
-      alert('Failed to create post');
-    }
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
-  const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'DR';
-
-  const mockCourses = [
-    { code: 'CSE 401', name: 'Mobile App Development', students: 45, schedule: 'Sun/Tue 9:00 AM' },
-    { code: 'CSE 402', name: 'AI & Machine Learning', students: 38, schedule: 'Mon/Wed 11:00 AM' },
-    { code: 'CSE 403', name: 'Database Systems', students: 52, schedule: 'Tue/Thu 2:00 PM' },
-    { code: 'CSE 404', name: 'Software Engineering', students: 41, schedule: 'Mon/Wed 2:00 PM' }
-  ];
-
-  const mockTasks = [
-    { icon: '📝', color: '#d32f2f', text: 'Grade Assignment 3 — Mobile App', due: 'Due Apr 28' },
-    { icon: '📋', color: '#f57c00', text: 'Submit Exam Questions — AI Course', due: 'Due Apr 25' },
-    { icon: '👥', color: '#1976d2', text: 'Advising Session — 5 Students', due: 'Apr 22' },
-    { icon: '📊', color: '#388e3c', text: 'Submit Midterm Results', due: 'Due Apr 30' }
-  ];
-
-  const quickLinks = [
-    { icon: '📚', label: 'My Courses', path: '/app/courses' },
-    { icon: '📤', label: 'Upload Materials', action: () => setUploadModal(true) },
-    { icon: '📢', label: 'Post Announcement', action: () => setAnnouncementModal(true) },
-    { icon: '👥', label: 'My Students', path: '/app/directory' },
-    { icon: '📅', label: 'Schedule', path: '/app/schedule' },
-    { icon: '📊', label: 'Analytics', path: '/app' }
-  ];
-
-  return (
-    <div className="harvard-dashboard lecturer-dashboard">
-      {/* TOP NAVIGATION */}
-      <header className="harvard-header">
-        <div className="harvard-header-left">
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <div className="harvard-logo">
-            <img src="/logo.png" alt="SmartBDU" className="logo-img" />
-=======
   const [activeTab, setActiveTab] = useState('dashboard');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [myCourses, setMyCourses] = useState([]);
-  const [mySchedule, setMySchedule] = useState([]);
-  const [assignments, setAssignments] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [materialForm, setMaterialForm] = useState({ title: '', url: '', type: 'link' });
-  const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '', category: 'academic', priority: 'normal', department: '' });
-  const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  
+  const [profileOpen, setProfileOpen] = useState(false);
 
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  const today = days[new Date().getDay()];
+  // Stats / Data
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
+
+  const [myFiles, setMyFiles] = useState([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+
+  const [schedules, setSchedules] = useState([]);
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+
+  // Forms
+  const [matForm, setMatForm] = useState(EMPTY_MAT);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const [annForm, setAnnForm] = useState(EMPTY_ANN);
+  const [announcementLoading, setAnnouncementLoading] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [schedData, courseData, assignData, annData] = await Promise.all([
-          scheduleService.getAll({}),
-          courseService.getAll({}),
-          assignmentService.getAll(),
-          announcementService.getAll({ limit: 10 })
-        ]);
+    if (activeTab === 'dashboard') {
+      fetchCourses();
+      fetchFiles();
+      fetchAnnouncements();
+      fetchSchedules();
+    } else if (activeTab === 'courses') fetchCourses();
+    else if (activeTab === 'materials') { fetchCourses(); fetchFiles(); }
+    else if (activeTab === 'announcements') fetchAnnouncements();
+    else if (activeTab === 'schedule') fetchSchedules();
+    setMessage(''); setError('');
+  }, [activeTab]);
+
+  const fetchCourses = async () => { setCoursesLoading(true); try { const all = await courseService.getAll({ department: user?.department || '' }); setCourses(all.filter(c => c.instructor === user?.name || c.instructor?.includes(user?.name?.split(' ')[0]))); } catch (e) { console.error(e); } setCoursesLoading(false); };
+  const fetchFiles = async () => { setFilesLoading(true); try { const d = await fileService.getMyFiles(); setMyFiles(d.files || d || []); } catch (e) { console.error(e); } setFilesLoading(false); };
+  const fetchAnnouncements = async () => { setAnnouncementsLoading(true); try { const d = await announcementService.getAll({ limit: 50 }); setAnnouncements(d.announcements || d || []); } catch (e) { console.error(e); } setAnnouncementsLoading(false); };
+  const fetchSchedules = async () => { setSchedulesLoading(true); try { const all = await scheduleService.getAll({ department: user?.department || '' }); setSchedules(all.filter(s => s.instructor === user?.name || s.instructor?.includes(user?.name?.split(' ')[0]))); } catch (e) { console.error(e); } setSchedulesLoading(false); };
+
+  const handleLogout = () => { logout(); navigate('/login'); };
+  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setMessage(''); setError(''); };
+
+  const handleMaterialUpload = async (e) => {
+    e.preventDefault();
+    if (!matForm.title || !matForm.department || !matForm.year || !matForm.semester) { setError('Title, Department, Year, and Semester are required'); return; }
+    if (!uploadFile && !matForm.url) { setError('Attach a file or provide a URL link'); return; }
+    
+    setUploading(true); setError(''); setMessage('');
+    try {
+      if (uploadFile) {
+        const fd = new FormData();
+        fd.append('file', uploadFile); fd.append('title', matForm.title);
+        fd.append('description', matForm.description); fd.append('courseCode', matForm.courseCode);
+        fd.append('department', matForm.department); fd.append('year', matForm.year);
+        fd.append('semester', matForm.semester); fd.append('section', matForm.section);
+        fd.append('category', matForm.category);
         
-        const lecturerCourses = (courseData || []).filter(c => 
-          c.instructor && user?.name && c.instructor.toLowerCase().includes(user.name.split(' ').pop()?.toLowerCase() || '')
-        );
-        setMyCourses(lecturerCourses.length > 0 ? lecturerCourses : courseData?.slice(0, 3) || []);
-        setMySchedule(schedData || []);
-        setAssignments(assignData || []);
-        setAnnouncements(annData.announcements || annData || []);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+        const res = await fileService.upload(fd);
+        if (res.success || res.file?._id) {
+          setMessage(`File uploaded successfully for ${matForm.department} Year ${matForm.year} Sem ${matForm.semester} Section ${matForm.section || 'All'}`);
+          setUploadFile(null); setMatForm(EMPTY_MAT);
+          fetchFiles();
+        } else { setError(res.message || 'Upload failed'); }
+      } else {
+        setMessage('Link material added (functionality needs backend support or course assignment)');
+        setMatForm(EMPTY_MAT);
       }
-      setLoading(false);
-    };
-    if (user) fetchData();
-  }, [user]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+    } catch (err) { setError(err.message || 'Failed to upload'); }
+    setUploading(false);
   };
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  const getDaysUntil = (dueDate) => {
-    const due = new Date(dueDate);
-    const now = new Date();
-    const diff = Math.ceil((due - now) / (1000 * 60 * 60 * 24));
-    if (diff <= 0) return 'Overdue';
-    if (diff === 1) return 'Tomorrow';
-    return `${diff} days`;
-  };
-
-  const handleAddMaterial = async (e) => {
-    e.preventDefault();
-    if (!selectedCourse || !materialForm.title || !materialForm.url) return;
-    
-    setSubmitting(true);
+  const handleAnnouncementSubmit = async (e) => {
+    e.preventDefault(); setAnnouncementLoading(true); setError(''); setMessage('');
     try {
-      await courseService.addMaterial(selectedCourse._id, materialForm);
-      setMessage('Material added successfully!');
-      setMaterialForm({ title: '', url: '', type: 'link' });
-      const courseData = await courseService.getAll({});
-      const lecturerCourses = (courseData || []).filter(c => 
-        c.instructor && user?.name && c.instructor.toLowerCase().includes(user.name.split(' ').pop()?.toLowerCase() || '')
-      );
-      setMyCourses(lecturerCourses.length > 0 ? lecturerCourses : courseData?.slice(0, 3) || []);
-    } catch (error) {
-      setMessage('Failed to add material. Please try again.');
-    }
-    setSubmitting(false);
-    setTimeout(() => setMessage(''), 3000);
-  };
-
-  const handleCreateAnnouncement = async (e) => {
-    e.preventDefault();
-    if (!announcementForm.title || !announcementForm.content) return;
-    
-    setSubmitting(true);
-    try {
-      await announcementService.createAnnouncement({
-        ...announcementForm,
-        department: announcementForm.department || user?.department
-      });
+      await announcementService.createAnnouncement({ ...annForm, department: annForm.department || user?.department });
       setMessage('Announcement posted successfully!');
-      setAnnouncementForm({ title: '', content: '', category: 'academic', priority: 'normal', department: '' });
-      const annData = await announcementService.getAll({ limit: 10 });
-      setAnnouncements(annData.announcements || annData || []);
-    } catch (error) {
-      setMessage('Failed to post announcement. Please try again.');
-    }
-    setSubmitting(false);
-    setTimeout(() => setMessage(''), 3000);
+      setAnnForm(EMPTY_ANN);
+      fetchAnnouncements();
+    } catch (err) { setError(err.message || 'Failed to post announcement'); }
+    setAnnouncementLoading(false);
   };
 
-  const renderDashboard = () => (
-    <>
-      <div className="welcome-banner lecturer-banner">
-        <div className="welcome-content">
-          <h1>Welcome back, Dr. {user?.name?.split(' ').slice(-1)[0]}! 👨‍🏫</h1>
-          <p>{user?.department || 'Computer Science'} • Lecturer</p>
-        </div>
-        <div className="welcome-illustration">📚</div>
-      </div>
+  const handleDeleteAnnouncement = async (id) => {
+    if (!window.confirm('Delete this announcement?')) return;
+    try { await announcementService.deleteAnnouncement(id); setMessage('Announcement deleted'); fetchAnnouncements(); } catch (err) { setError(err.message || 'Failed'); }
+  };
 
-      <div className="quick-stats">
-        <div className="stat-card" onClick={() => setActiveTab('courses')}>
-          <div className="stat-icon">📖</div>
-          <div>
-            <div className="stat-value">{myCourses.length}</div>
-            <div className="stat-label">My Courses</div>
-          </div>
-        </div>
-        <div className="stat-card accent" onClick={() => setActiveTab('schedule')}>
-          <div className="stat-icon">📅</div>
-          <div>
-            <div className="stat-value">{mySchedule.filter(s => s.day === today).length}</div>
-            <div className="stat-label">Classes Today</div>
-          </div>
-        </div>
-        <div className="stat-card success" onClick={() => setActiveTab('assignments')}>
-          <div className="stat-icon">📝</div>
-          <div>
-            <div className="stat-value">{assignments.filter(a => a.status === 'pending').length}</div>
-            <div className="stat-label">Pending Grading</div>
-          </div>
-        </div>
-        <div className="stat-card info" onClick={() => setActiveTab('announcements')}>
-          <div className="stat-icon">📢</div>
-          <div>
-            <div className="stat-value">{announcements.length}</div>
-            <div className="stat-label">Notices</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="dashboard-grid">
-        <div className="main-content">
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">📅 Today's Schedule</h3>
-              <button className="view-all-btn" onClick={() => setActiveTab('schedule')}>View All →</button>
-            </div>
-            {mySchedule.filter(s => s.day === today).length > 0 ? (
-              <table className="schedule-table">
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Course</th>
-                    <th>Room</th>
-                    <th>Building</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mySchedule.filter(s => s.day === today).slice(0, 4).map((sched, idx) => (
-                    <tr key={idx}>
-                      <td><span className="time-badge">{sched.startTime} - {sched.endTime}</span></td>
-                      <td>
-                        <div className="course-name">{sched.courseName}</div>
-                        <div className="course-code">{sched.courseCode}</div>
-                      </td>
-                      <td>{sched.room || 'TBA'}</td>
-                      <td>{sched.building || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="empty-state">No classes scheduled for today</div>
-            )}
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">📝 Assignments to Grade</h3>
-              <button className="view-all-btn" onClick={() => setActiveTab('assignments')}>View All →</button>
-            </div>
-            {assignments.filter(a => a.status === 'pending').length > 0 ? (
-              <div className="assignments-list">
-                {assignments.filter(a => a.status === 'pending').slice(0, 4).map((assign, idx) => (
-                  <div key={idx} className="assignment-card pending">
-                    <div className="assignment-info">
-                      <div className="assignment-title">{assign.title}</div>
-                      <div className="assignment-course">{assign.courseName} ({assign.courseCode})</div>
-                    </div>
-                    <div className="assignment-due">
-                      <div className="due-badge pending">
-                        {getDaysUntil(assign.dueDate)} left
-                      </div>
-                      <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">No pending assignments to grade</div>
-            )}
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
-          </div>
-        </div>
-        
-        <nav className={`harvard-nav ${sidebarOpen ? 'open' : ''}`}>
-          <button className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveSection('dashboard'); setSidebarOpen(false); }}>
-            <span className="nav-icon">🏠</span> Dashboard
-          </button>
-          <button className={`nav-item ${activeSection === 'courses' ? 'active' : ''}`} onClick={() => { setActiveSection('courses'); setSidebarOpen(false); }}>
-            <span className="nav-icon">📚</span> Courses
-          </button>
-          <button className={`nav-item ${activeSection === 'students' ? 'active' : ''}`} onClick={() => { setActiveSection('students'); setSidebarOpen(false); }}>
-            <span className="nav-icon">👥</span> Students
-          </button>
-          <button className={`nav-item ${activeSection === 'materials' ? 'active' : ''}`} onClick={() => { setActiveSection('materials'); setSidebarOpen(false); }}>
-            <span className="nav-icon">📁</span> Materials
-          </button>
-          <button className={`nav-item ${activeSection === 'announcements' ? 'active' : ''}`} onClick={() => { setAnnouncementModal(true); setSidebarOpen(false); }}>
-            <span className="nav-icon">📢</span> Announce
-          </button>
-        </nav>
-
-<<<<<<< HEAD
-        <div className="harvard-header-right">
-          <div className="harvard-user-info">
-            <div className="harvard-user-details">
-              <span className="harvard-user-name">Dr. {user?.name?.split(' ').slice(-1)[0] || 'Professor'}</span>
-              <span className="harvard-user-id">{user?.department || 'Software Engineering'}</span>
-            </div>
-            <div className="harvard-avatar professor" onClick={handleLogout}>
-              {getInitials(user?.name)}
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="harvard-main">
-        {/* WELCOME SECTION */}
-        <section className="harvard-welcome">
-          <div className="welcome-content">
-            <h1>{getGreeting()}, Dr. {user?.name?.split(' ').slice(-1)[0] || 'Professor'}!</h1>
-            <p>You have 4 classes today. 3 assignments pending review.</p>
-          </div>
-          <div className="welcome-stats">
-            <div className="stat-card">
-              <span className="stat-number">{mockCourses.length}</span>
-              <span className="stat-label">Active Courses</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">176</span>
-              <span className="stat-label">Total Students</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-number">4</span>
-              <span className="stat-label">Pending Tasks</span>
-            </div>
-          </div>
-        </section>
-
-        {/* QUICK ACTIONS */}
-        <section className="harvard-quick-actions">
-          {quickLinks.map((link, idx) => (
-            <button 
-              key={idx} 
-              className="quick-action-btn"
-              onClick={link.action || (() => navigate(link.path))}
-            >
-              <span className="quick-action-icon">{link.icon}</span>
-              <span className="quick-action-label">{link.label}</span>
-=======
-        <div className="sidebar">
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">⚡ Quick Actions</h3>
-            </div>
-            <div className="quick-links-grid">
-              <div className="quick-link-item" onClick={() => setActiveTab('courses')}>
-                <span className="ql-icon">📚</span>
-                <span>My Courses</span>
-              </div>
-              <div className="quick-link-item" onClick={() => setActiveTab('schedule')}>
-                <span className="ql-icon">📅</span>
-                <span>Schedule</span>
-              </div>
-              <div className="quick-link-item" onClick={() => setActiveTab('postMaterial')}>
-                <span className="ql-icon">📎</span>
-                <span>Add Material</span>
-              </div>
-              <div className="quick-link-item" onClick={() => setActiveTab('announcements')}>
-                <span className="ql-icon">📢</span>
-                <span>Post Notice</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderCourses = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📚 My Courses - Click to Add Materials</h3>
-        </div>
-        {myCourses.length > 0 ? (
-          <div className="courses-grid">
-            {myCourses.map((course, idx) => (
-              <div key={idx} className="course-card clickable" onClick={() => { setSelectedCourse(course); setActiveTab('postMaterial'); }}>
-                <div className="course-code-badge">{course.code}</div>
-                <div className="course-name">{course.name}</div>
-                <div className="course-meta">
-                  <span>Year {course.year}</span> • <span>Sem {course.semester}</span> • <span>{course.credits} Credits</span>
-                </div>
-                <div className="course-instructor">👨‍🏫 {course.instructor}</div>
-                <div className="course-materials">
-                  📚 {course.materials?.length || 0} materials
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">No courses assigned</div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderPostMaterial = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📎 Add Course Material</h3>
-        </div>
-        
-        {selectedCourse ? (
-          <div>
-            <div className="selected-course-info">
-              <span className="course-code-badge">{selectedCourse.code}</span>
-              <span>{selectedCourse.name}</span>
-              <button className="change-course-btn" onClick={() => setSelectedCourse(null)}>Change</button>
-            </div>
-            
-            {message && <div className="success-message">{message}</div>}
-            
-            <form onSubmit={handleAddMaterial} className="material-form">
-              <div className="form-group">
-                <label>Material Title *</label>
-                <input 
-                  type="text" 
-                  value={materialForm.title}
-                  onChange={(e) => setMaterialForm({...materialForm, title: e.target.value})}
-                  placeholder="e.g., Lecture 1 - Introduction"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>URL *</label>
-                <input 
-                  type="url" 
-                  value={materialForm.url}
-                  onChange={(e) => setMaterialForm({...materialForm, url: e.target.value})}
-                  placeholder="https://..."
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Type</label>
-                <select value={materialForm.type} onChange={(e) => setMaterialForm({...materialForm, type: e.target.value})}>
-                  <option value="link">Link</option>
-                  <option value="pdf">PDF</option>
-                  <option value="video">Video</option>
-                </select>
-              </div>
-              <button type="submit" className="submit-btn" disabled={submitting}>
-                {submitting ? 'Adding...' : 'Add Material'}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <div>
-            <p>Select a course to add materials:</p>
-            <div className="courses-grid">
-              {myCourses.map((course, idx) => (
-                <div key={idx} className="course-card clickable" onClick={() => setSelectedCourse(course)}>
-                  <div className="course-code-badge">{course.code}</div>
-                  <div className="course-name">{course.name}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderAnnouncements = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📢 Post Announcement for Your Department</h3>
-        </div>
-        
-        {message && <div className="success-message">{message}</div>}
-        
-        <form onSubmit={handleCreateAnnouncement} className="announcement-form">
-          <div className="form-group">
-            <label>Title *</label>
-            <input 
-              type="text" 
-              value={announcementForm.title}
-              onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
-              placeholder="Announcement title"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Content *</label>
-            <textarea 
-              value={announcementForm.content}
-              onChange={(e) => setAnnouncementForm({...announcementForm, content: e.target.value})}
-              placeholder="Write your announcement..."
-              rows="4"
-              required
-            />
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Category</label>
-              <select value={announcementForm.category} onChange={(e) => setAnnouncementForm({...announcementForm, category: e.target.value})}>
-                <option value="general">General</option>
-                <option value="academic">Academic</option>
-                <option value="event">Event</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label>Priority</label>
-              <select value={announcementForm.priority} onChange={(e) => setAnnouncementForm({...announcementForm, priority: e.target.value})}>
-                <option value="normal">Normal</option>
-                <option value="important">Important</option>
-                <option value="urgent">Urgent</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Department (auto-filled from your profile)</label>
-            <input 
-              type="text" 
-              value={announcementForm.department || user?.department || ''}
-              onChange={(e) => setAnnouncementForm({...announcementForm, department: e.target.value})}
-              placeholder={user?.department}
-            />
-          </div>
-          <button type="submit" className="submit-btn" disabled={submitting}>
-            {submitting ? 'Posting...' : 'Post Announcement'}
-          </button>
-        </form>
-
-        <h4 style={{marginTop: '30px', marginBottom: '15px'}}>Previous Announcements</h4>
-        {announcements.length > 0 ? (
-          <div>
-            {announcements.map((ann, idx) => (
-              <div key={idx} className={`announcement-full ${ann.priority}`}>
-                <div className="announcement-full-header">
-                  <h4>{ann.title}</h4>
-                  <span className="tag">{ann.category}</span>
-                </div>
-                <p className="announcement-full-content">{ann.content}</p>
-                <div className="announcement-full-date">{formatDate(ann.createdAt)} • {ann.department}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">No announcements yet</div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderSchedule = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📅 Weekly Schedule</h3>
-        </div>
-        <div className="tab-container">
-          {days.slice(1, 6).map(day => (
-            <button key={day} className={`tab ${today === day ? 'active' : ''}`}>
-              {day.charAt(0).toUpperCase() + day.slice(1)}
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
-            </button>
-          ))}
-        </section>
-
-        {/* MAIN CONTENT GRID */}
-        <div className="harvard-grid">
-          
-          {/* MY COURSES CARD */}
-          <div className="harvard-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📚</span> My Courses</h3>
-              <button className="view-all-btn" onClick={() => setActiveSection('courses')}>View All →</button>
-            </div>
-            <div className="card-body">
-              <div className="courses-list">
-                {mockCourses.slice(0, 4).map((course, idx) => (
-                  <div key={idx} className="course-item">
-                    <div className="course-code">{course.code}</div>
-                    <div className="course-info">
-                      <span className="course-name">{course.name}</span>
-                      <span className="course-instructor">{course.schedule}</span>
-                    </div>
-                    <div className="course-grade">
-                      <span className="grade-badge" style={{ background: '#e3f2fd', color: '#1565c0' }}>{course.students}</span>
-                      <span className="credits">students</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* PENDING TASKS CARD */}
-          <div className="harvard-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📌</span> Pending Tasks</h3>
-              <button className="view-all-btn">See More →</button>
-            </div>
-            <div className="card-body">
-              <div className="courses-list">
-                {mockTasks.map((task, idx) => (
-                  <div key={idx} className="course-item">
-                    <span className="course-code" style={{ background: task.color, minWidth: 'auto', padding: '8px 12px' }}>{task.icon}</span>
-                    <div className="course-info">
-                      <span className="course-name">{task.text}</span>
-                      <span className="course-instructor">{task.due}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* UPLOAD MATERIALS CARD */}
-          <div className="harvard-card upload-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📤</span> Upload Teaching Materials</h3>
-            </div>
-            <div className="card-body">
-              <div className="upload-zone" onClick={() => setUploadModal(true)}>
-                <span className="upload-icon">📁</span>
-                <span className="upload-text">Click to upload course materials</span>
-                <span className="upload-hint">PDF, DOC, PPT, ZIP up to 50MB</span>
-              </div>
-              <div className="recent-uploads">
-                <h4>Recent Uploads</h4>
-                <div className="upload-item">
-                  <span className="upload-file-icon">📄</span>
-                  <div className="upload-file-info">
-                    <span className="upload-file-name">Lecture 5 - Neural Networks.pdf</span>
-                    <span className="upload-file-meta">AI & ML · Uploaded 2 days ago</span>
-                  </div>
-                </div>
-                <div className="upload-item">
-                  <span className="upload-file-icon">📄</span>
-                  <div className="upload-file-info">
-                    <span className="upload-file-name">Assignment 3 - Questions.docx</span>
-                    <span className="upload-file-meta">Mobile App Dev · Uploaded 5 days ago</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* ANNOUNCEMENTS CARD */}
-          <div className="harvard-card">
-            <div className="card-header">
-              <h3><span className="card-icon">📢</span> Recent Announcements</h3>
-              <button className="view-all-btn" onClick={() => setAnnouncementModal(true)}>Post New →</button>
-            </div>
-            <div className="card-body">
-              <div className="announcements-list">
-                {mockTasks.slice(0, 3).map((task, idx) => (
-                  <div key={idx} className="announcement-item">
-                    <div className="announcement-content">
-                      <span className="announcement-title">New {task.text.split('—')[0]}</span>
-                      <span className="announcement-date">{task.due}</span>
-                    </div>
-                    <span className="announcement-arrow">→</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-        </div>
-<<<<<<< HEAD
-
-        {/* BOTTOM INFO */}
-        <section className="harvard-footer-info">
-          <div className="info-card">
-            <span className="info-icon">📅</span>
-            <div className="info-content">
-              <h4>Today's Classes</h4>
-              <p>4 Classes · 6 Hours Total Teaching Time</p>
-            </div>
-          </div>
-          <div className="info-card">
-            <span className="info-icon">📊</span>
-            <div className="info-content">
-              <h4>Department</h4>
-              <p>{user?.department || 'Computer Science & Engineering'}</p>
-            </div>
-          </div>
-          <div className="info-card">
-            <span className="info-icon">📧</span>
-            <div className="info-content">
-              <h4>Contact</h4>
-              <p>{user?.email || 'faculty@bdu.edu.et'}</p>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      {/* Upload Modal */}
-      {uploadModal && (
-        <div className="modal-overlay" onClick={() => setUploadModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Upload Teaching Materials</h3>
-              <button className="modal-close" onClick={() => setUploadModal(false)}>×</button>
-            </div>
-            <form onSubmit={handleUpload}>
-              <div className="form-group">
-                <label>Material Title</label>
-                <input type="text" className="form-control" value={uploadForm.title} onChange={(e) => setUploadForm({...uploadForm, title: e.target.value})} placeholder="Enter material title" required />
-              </div>
-              <div className="form-group">
-                <label>Select Course</label>
-                <select className="form-control" value={uploadForm.course} onChange={(e) => setUploadForm({...uploadForm, course: e.target.value})} required>
-                  <option value="">Select a course</option>
-                  {mockCourses.map((c, idx) => (<option key={idx} value={c.code}>{c.code} - {c.name}</option>))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Description</label>
-                <textarea className="form-control" value={uploadForm.description} onChange={(e) => setUploadForm({...uploadForm, description: e.target.value})} rows="3" placeholder="Brief description of the material"></textarea>
-              </div>
-              <div className="form-group">
-                <label>File</label>
-                <input type="file" className="form-control" onChange={(e) => setUploadForm({...uploadForm, file: e.target.files[0]})} required />
-              </div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Upload Material</button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Announcement Modal */}
-      {announcementModal && (
-        <div className="modal-overlay" onClick={() => setAnnouncementModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Post Announcement</h3>
-              <button className="modal-close" onClick={() => setAnnouncementModal(false)}>×</button>
-            </div>
-            <form onSubmit={handleAnnouncement}>
-              <div className="form-group">
-                <label>Title</label>
-                <input type="text" className="form-control" value={announcementForm.title} onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})} placeholder="Announcement title" required />
-              </div>
-              <div className="form-group">
-                <label>Target Department</label>
-                <select className="form-control" value={announcementForm.department} onChange={(e) => setAnnouncementForm({...announcementForm, department: e.target.value})}>
-                  <option value="">All Departments</option>
-                  <option value="CSE">Computer Science & Engineering</option>
-                  <option value="EE">Electrical Engineering</option>
-                  <option value="ME">Mechanical Engineering</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label>Message</label>
-                <textarea className="form-control" value={announcementForm.content} onChange={(e) => setAnnouncementForm({...announcementForm, content: e.target.value})} rows="5" placeholder="Write your announcement..." required></textarea>
-              </div>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Post Announcement</button>
-            </form>
-          </div>
-        </div>
-      )}
-=======
-        {mySchedule.filter(s => s.day === today).length > 0 ? (
-          <table className="schedule-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Course</th>
-                <th>Code</th>
-                <th>Room</th>
-                <th>Building</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mySchedule.filter(s => s.day === today).map((sched, idx) => (
-                <tr key={idx}>
-                  <td><span className="time-badge">{sched.startTime} - {sched.endTime}</span></td>
-                  <td>{sched.courseName}</td>
-                  <td>{sched.courseCode || '-'}</td>
-                  <td>{sched.room || 'TBA'}</td>
-                  <td>{sched.building || '-'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className="empty-state">No classes scheduled for today</div>
-        )}
-      </div>
->>>>>>> a74f83fcc58b2b161ca991477191bc1bd28f91a2
-    </div>
-  );
-
-  const renderAssignments = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📝 All Assignments</h3>
-        </div>
-        {assignments.length > 0 ? (
-          <div className="assignments-list">
-            {assignments.map((assign, idx) => (
-              <div key={idx} className={`assignment-card ${assign.status}`}>
-                <div className="assignment-info">
-                  <div className="assignment-title">{assign.title}</div>
-                  <div className="assignment-course">{assign.courseName} ({assign.courseCode})</div>
-                </div>
-                <div className="assignment-due">
-                  <div className={`status-badge ${assign.status}`}>{assign.status}</div>
-                  <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">No assignments</div>
-        )}
-      </div>
-    </div>
-  );
-
-  if (loading) return <div className="loading"><div className="spinner"></div></div>;
+  const pageTitle = SIDEBAR_NAV.find(n => n.id === activeTab)?.label || 'Lecturer';
+  if (user?.role !== 'lecturer') return <div className="admin-access-denied">Access denied. Lecturer privileges required.</div>;
 
   return (
-    <div className="student-layout">
-      <aside className={`student-sidebar lecturer-sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <div className="sidebar-logo">📚 <span>SmartBDU</span></div>
-        </div>
-        <ul className="sidebar-menu">
-          <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setMenuOpen(false); }}>
-            <span className="menu-icon">🏠</span><span>Dashboard</span>
-          </li>
-          <li className={`menu-item ${activeTab === 'courses' ? 'active' : ''}`} onClick={() => { setActiveTab('courses'); setMenuOpen(false); }}>
-            <span className="menu-icon">📚</span><span>My Courses</span>
-          </li>
-          <li className={`menu-item ${activeTab === 'postMaterial' ? 'active' : ''}`} onClick={() => { setActiveTab('postMaterial'); setMenuOpen(false); }}>
-            <span className="menu-icon">📎</span><span>Add Materials</span>
-          </li>
-          <li className={`menu-item ${activeTab === 'schedule' ? 'active' : ''}`} onClick={() => { setActiveTab('schedule'); setMenuOpen(false); }}>
-            <span className="menu-icon">📅</span><span>Schedule</span>
-          </li>
-          <li className={`menu-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => { setActiveTab('assignments'); setMenuOpen(false); }}>
-            <span className="menu-icon">📝</span><span>Assignments</span>
-          </li>
-          <li className={`menu-item ${activeTab === 'announcements' ? 'active' : ''}`} onClick={() => { setActiveTab('announcements'); setMenuOpen(false); }}>
-            <span className="menu-icon">📢</span><span>Announcements</span>
-          </li>
+    <div className="admin-layout">
+      <aside className={`admin-sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="admin-sidebar-header"></div>
+        <ul className="admin-sidebar-menu">
+          {SIDEBAR_NAV.map(n => (
+            <li key={n.id} className={`admin-menu-item ${activeTab === n.id ? 'active' : ''}`} onClick={() => switchTab(n.id)}>
+              <span className="admin-menu-icon">{n.icon}</span><span>{n.label}</span>
+            </li>
+          ))}
         </ul>
-        <div className="sidebar-footer">
-          <div className="user-profile">
-            <div className="user-avatar lecturer-avatar">{user?.name?.charAt(0)}</div>
-            <div className="user-info">
-              <div className="user-name">Dr. {user?.name}</div>
-              <div className="user-role">{user?.department}</div>
-            </div>
-          </div>
-          <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
-        </div>
       </aside>
 
-      {menuOpen && <div className="sidebar-overlay" onClick={() => setMenuOpen(false)}></div>}
+      {menuOpen && <div className="admin-overlay" onClick={() => setMenuOpen(false)} />}
 
-      <main className="student-main">
-        <header className="student-header">
-          <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
-            <span></span><span></span><span></span>
-          </button>
-          <h1>{activeTab === 'dashboard' ? 'Dashboard' : activeTab === 'postMaterial' ? 'Add Materials' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
-          <div className="header-user">
-            <span className="header-avatar">{user?.name?.charAt(0)}</span>
+      <main className="admin-main">
+        <header className="admin-header">
+          <div className="admin-header-left">
+            <button className="admin-menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
+              <span /><span /><span />
+            </button>
+            <span className="admin-header-brand"><img src="/logo.png" alt="SmartBDU" className="admin-header-logo-img" /></span>
+          </div>
+
+          <h1 className="admin-header-title">{pageTitle}</h1>
+
+          <div className="admin-header-right">
+            <div className="admin-profile-wrap">
+              <button className="admin-profile-btn" onClick={() => setProfileOpen(v => !v)} title="Profile">
+                <span className="admin-header-avatar">{user?.name?.charAt(0)}</span>
+                <span className="admin-profile-name">{user?.name?.split(' ')[0]}</span>
+                <span className="admin-profile-caret">{profileOpen ? '▲' : '▼'}</span>
+              </button>
+
+              {profileOpen && (
+                <div className="admin-profile-dropdown">
+                  <div className="admin-profile-info">
+                    <div className="admin-profile-avatar-lg">{user?.name?.charAt(0)}</div>
+                    <div>
+                      <div className="admin-profile-fullname">{user?.name}</div>
+                      <div className="admin-profile-email">{user?.email}</div>
+                      <div className="admin-profile-role">Lecturer · {user?.department}</div>
+                    </div>
+                  </div>
+                  <hr className="admin-profile-divider" />
+                  <button className="admin-profile-action logout" onClick={handleLogout}>🚪 Logout</button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        <div className="student-content">
-          {activeTab === 'dashboard' && renderDashboard()}
-          {activeTab === 'courses' && renderCourses()}
-          {activeTab === 'postMaterial' && renderPostMaterial()}
-          {activeTab === 'schedule' && renderSchedule()}
-          {activeTab === 'assignments' && renderAssignments()}
-          {activeTab === 'announcements' && renderAnnouncements()}
+        <div className="admin-content">
+          {message && <div className="success-message">{message}</div>}
+          {error && <div className="error-message">{error}</div>}
+
+          {/* DASHBOARD */}
+          {activeTab === 'dashboard' && (
+            <div className="tab-content">
+              <div className="admin-quick-actions" style={{marginBottom:24}}>
+                <h3>Quick Actions</h3>
+                <div className="admin-quick-grid">
+                  <button className="admin-quick-btn" onClick={() => switchTab('courses')}>📚 View Assigned Courses</button>
+                  <button className="admin-quick-btn" onClick={() => switchTab('materials')}>📤 Upload File</button>
+                  <button className="admin-quick-btn" onClick={() => switchTab('announcements')}>📢 Post Announcement</button>
+                  <button className="admin-quick-btn" onClick={() => switchTab('schedule')}>📅 View Schedule</button>
+                </div>
+              </div>
+              <div className="admin-stats-grid">
+                {[
+                  { icon: '📚', val: courses.length, label: 'Assigned Courses', tab: 'courses' },
+                  { icon: '📁', val: myFiles.length, label: 'Materials Uploaded', tab: 'materials' },
+                  { icon: '📢', val: announcements.length, label: 'Announcements', tab: 'announcements' },
+                  { icon: '📅', val: schedules.length, label: 'Scheduled Classes', tab: 'schedule' },
+                ].map((s, i) => (
+                  <div key={i} className="admin-stat-card" onClick={() => switchTab(s.tab)}>
+                    <div className="admin-stat-icon">{s.icon}</div>
+                    <div className="admin-stat-value">{s.val}</div>
+                    <div className="admin-stat-label">{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* COURSES */}
+          {activeTab === 'courses' && (
+            <div className="tab-content">
+              <div className="data-section">
+                <div className="section-header"><h2>📚 Courses Assigned by Admin ({courses.length})</h2><button onClick={fetchCourses} className="refresh-btn" disabled={coursesLoading}>Refresh</button></div>
+                {coursesLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Code</th><th>Title</th><th>Department</th><th>Year/Sem</th><th>Section</th><th>Credits</th><th>Materials</th></tr></thead>
+                    <tbody>
+                      {courses.length === 0 ? <tr><td colSpan={7} style={{textAlign:'center',color:'#999',padding:20}}>No courses assigned yet. Contact your administrator.</td></tr>
+                        : courses.map(c => (
+                          <tr key={c._id}>
+                            <td><strong>{c.code}</strong></td><td>{c.name}</td><td>{c.department}</td>
+                            <td>Y{c.year}/S{c.semester}</td><td>{c.section||'All'}</td><td>{c.credits}</td>
+                            <td>📁 {c.materials?.length||0}</td>
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* UPLOAD MATERIALS */}
+          {activeTab === 'materials' && (
+            <div className="tab-content">
+              <div className="admin-forms single-form">
+                <div className="form-section">
+                  <h2>📤 Upload Material</h2>
+                  <p style={{fontSize:13,color:'#666',marginBottom:20}}>Upload files for a specific batch, department, semester, and section.</p>
+                  <form onSubmit={handleMaterialUpload}>
+                    <div className="form-group"><label>Title *</label><input type="text" value={matForm.title} onChange={e => setMatForm({...matForm,title:e.target.value})} placeholder="e.g. Chapter 1 Notes" required /></div>
+                    <div className="form-group"><label>Description</label><textarea value={matForm.description} onChange={e => setMatForm({...matForm,description:e.target.value})} rows={2} /></div>
+                    
+                    <div className="course-header-row" style={{marginTop:16}}>
+                      <div className="form-group"><label>Department *</label><input type="text" value={matForm.department} onChange={e => setMatForm({...matForm,department:e.target.value})} placeholder={user?.department || "e.g. Computer Science"} required /></div>
+                      <div className="form-group"><label>Year / Batch *</label><input type="number" value={matForm.year} onChange={e => setMatForm({...matForm,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
+                    </div>
+                    <div className="course-header-row">
+                      <div className="form-group"><label>Semester *</label><input type="number" value={matForm.semester} onChange={e => setMatForm({...matForm,semester:e.target.value})} placeholder="1 or 2" min="1" max="2" required /></div>
+                      <div className="form-group"><label>Section</label><input type="text" value={matForm.section} onChange={e => setMatForm({...matForm,section:e.target.value})} placeholder="e.g. A" /></div>
+                    </div>
+
+                    <div className="course-header-row" style={{marginTop:16}}>
+                      <div className="form-group"><label>Course Code (optional)</label><input type="text" value={matForm.courseCode} onChange={e => setMatForm({...matForm,courseCode:e.target.value})} placeholder="e.g. CSE301" /></div>
+                      <div className="form-group"><label>Category</label>
+                        <select value={matForm.category} onChange={e => setMatForm({...matForm,category:e.target.value})}>
+                          <option value="lecture">Lecture Note</option><option value="assignment">Assignment</option><option value="exam">Past Exam</option><option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="course-header-row" style={{marginTop:16}}>
+                      <div className="form-group"><label>Upload File (Max 50MB) *</label>
+                        <input type="file" onChange={e => setUploadFile(e.target.files[0])} accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar" />
+                        {uploadFile && <div style={{fontSize:12,color:'#1565c0',marginTop:4,fontWeight:600}}>📎 {uploadFile.name}</div>}
+                      </div>
+                    </div>
+
+                    <div className="ann-target-preview" style={{marginTop:12}}>
+                      📤 Sending to: <strong>
+                        {matForm.department || 'Department'} · Year {matForm.year || '?' } · Sem {matForm.semester || '?' } {matForm.section ? ` · Sec ${matForm.section}` : '· All Sections'}
+                      </strong>
+                    </div>
+
+                    <button type="submit" className="submit-btn" disabled={uploading} style={{maxWidth:260,marginTop:16}}>{uploading ? 'Uploading...' : '📤 Upload File'}</button>
+                  </form>
+                </div>
+              </div>
+
+              <div className="data-section">
+                <div className="section-header"><h2>📁 My Uploaded Files ({myFiles.length})</h2><button onClick={fetchFiles} className="refresh-btn" disabled={filesLoading}>Refresh</button></div>
+                {filesLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Title</th><th>Course</th><th>Dept</th><th>Year</th><th>Sem</th><th>Sec</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody>
+                      {myFiles.length === 0 ? <tr><td colSpan={8} style={{textAlign:'center',color:'#999',padding:20}}>No files uploaded yet</td></tr>
+                        : myFiles.map((f, i) => (
+                          <tr key={i}>
+                            <td><strong>{f.title}</strong></td><td>{f.courseCode||'-'}</td><td>{f.department}</td>
+                            <td>{f.year?`Y${f.year}`:'-'}</td><td>{f.semester?`S${f.semester}`:'-'}</td><td>{f.section||'-'}</td>
+                            <td>{new Date(f.createdAt).toLocaleDateString()}</td>
+                            <td><button className="lec-btn" onClick={() => fileService.download(f._id)} style={{background:'#e3f0ff',color:'#1565c0',border:'none',padding:'6px 12px',borderRadius:6,cursor:'pointer',fontWeight:600}}>⬇ DL</button></td>
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ANNOUNCEMENTS */}
+          {activeTab === 'announcements' && (
+            <div className="tab-content">
+              <div className="admin-forms single-form">
+                <div className="form-section">
+                  <h2>Post Announcement</h2>
+                  <p style={{fontSize:13,color:'#666',marginBottom:20}}>Post announcements for a specific batch, department, semester, and section.</p>
+                  <form onSubmit={handleAnnouncementSubmit}>
+                    <div className="form-group"><label>Title *</label><input type="text" value={annForm.title} onChange={e => setAnnForm({...annForm,title:e.target.value})} required /></div>
+                    <div className="form-group"><label>Content *</label><textarea value={annForm.content} onChange={e => setAnnForm({...annForm,content:e.target.value})} rows={4} required /></div>
+                    
+                    <div className="form-group"><label>Target Audience</label>
+                      <select value={annForm.targetType} onChange={e => setAnnForm({...annForm,targetType:e.target.value,department:'',batch:'',section:''})}>
+                        <option value="section">🎯 Specific Batch + Dept + Sem + Section</option>
+                        <option value="batch">📅 Specific Batch + Dept + Sem</option>
+                        <option value="department">🏛 Entire Department</option>
+                        <option value="all">🌐 All Students</option>
+                      </select>
+                    </div>
+
+                    {(annForm.targetType==='department'||annForm.targetType==='batch'||annForm.targetType==='section') && (
+                      <div className="form-group"><label>Department *</label><input type="text" value={annForm.department} onChange={e => setAnnForm({...annForm,department:e.target.value})} placeholder={user?.department || "e.g. Computer Science"} required /></div>
+                    )}
+                    {(annForm.targetType==='batch'||annForm.targetType==='section') && (
+                      <div className="form-group"><label>Batch / Year *</label><input type="text" value={annForm.batch} onChange={e => setAnnForm({...annForm,batch:e.target.value})} placeholder="e.g. 3" required /></div>
+                    )}
+                    {annForm.targetType==='section' && (
+                      <div className="form-group"><label>Section *</label><input type="text" value={annForm.section} onChange={e => setAnnForm({...annForm,section:e.target.value})} placeholder="e.g. A" required /></div>
+                    )}
+
+                    <div className="ann-meta-row" style={{marginTop:16}}>
+                      <div className="form-group"><label>Category</label>
+                        <select value={annForm.category} onChange={e => setAnnForm({...annForm,category:e.target.value})}>
+                          <option value="general">General</option><option value="academic">Academic</option><option value="event">Event</option><option value="urgent">Urgent</option>
+                        </select>
+                      </div>
+                      <div className="form-group"><label>Priority</label>
+                        <select value={annForm.priority} onChange={e => setAnnForm({...annForm,priority:e.target.value})}>
+                          <option value="normal">Normal</option><option value="important">Important</option><option value="urgent">Urgent</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="ann-target-preview">
+                      📣 Sending to: <strong>
+                        {annForm.targetType==='all'&&'All Students'}
+                        {annForm.targetType==='department'&&(annForm.department||'a department')}
+                        {annForm.targetType==='batch'&&`${annForm.department||'dept'} — Year ${annForm.batch||'?'}`}
+                        {annForm.targetType==='section'&&`${annForm.department||'dept'} — Y${annForm.batch||'?'} — Sec ${annForm.section||'?'}`}
+                      </strong>
+                    </div>
+                    <button type="submit" className="submit-btn" disabled={announcementLoading}>{announcementLoading?'Posting...':'📢 Post Announcement'}</button>
+                  </form>
+                </div>
+              </div>
+              <div className="data-section">
+                <div className="section-header"><h2>Announcements ({announcements.length})</h2><button onClick={fetchAnnouncements} className="refresh-btn" disabled={announcementsLoading}>Refresh</button></div>
+                {announcementsLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Title</th><th>Content</th><th>Category</th><th>Target</th><th>Date</th><th>Action</th></tr></thead>
+                    <tbody>
+                      {announcements.length===0 ? <tr><td colSpan={6} style={{textAlign:'center',color:'#999',padding:20}}>No announcements</td></tr>
+                        : announcements.map(a => (
+                          <tr key={a._id}>
+                            <td><strong>{a.title}</strong></td>
+                            <td style={{maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.content}</td>
+                            <td><span className={`badge tag-${a.category}`}>{a.category}</span></td>
+                            <td style={{fontSize:12,color:'#666'}}>{a.targetType}{a.department?` · ${a.department}`:''}{a.batch?` · Y${a.batch}`:''}{a.section?` · Sec ${a.section}`:''}</td>
+                            <td>{new Date(a.createdAt).toLocaleDateString()}</td>
+                            {/* We will let Lecturer delete announcements they made, maybe back-end verifies it */}
+                            <td><button className="delete-btn" onClick={() => handleDeleteAnnouncement(a._id)}>Delete</button></td>
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* SCHEDULE */}
+          {activeTab === 'schedule' && (
+            <div className="tab-content">
+              <div className="data-section">
+                <div className="section-header"><h2>📅 Assigned Schedule</h2><button onClick={fetchSchedules} className="refresh-btn" disabled={schedulesLoading}>Refresh</button></div>
+                {schedulesLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Dept/Year/Sec</th><th>Room</th></tr></thead>
+                    <tbody>
+                      {schedules.length === 0 ? <tr><td colSpan={5} style={{textAlign:'center',color:'#999',padding:20}}>No schedules assigned yet</td></tr>
+                        : schedules.map((s, i) => (
+                        <tr key={i}>
+                          <td style={{textTransform:'capitalize',fontWeight:600}}>{s.day}</td>
+                          <td><span style={{background:'#e3f0ff',color:'#1565c0',padding:'2px 8px',borderRadius:6,fontSize:12,fontWeight:600}}>{s.startTime} – {s.endTime}</span></td>
+                          <td><strong>{s.courseName}</strong><br/><small style={{color:'#888'}}>{s.courseCode}</small></td>
+                          <td>{s.department||'-'} | Y{s.year||'-'} | {s.section||'All'}</td>
+                          <td>{s.room||'-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
+      <FloatingAI />
     </div>
   );
 };
