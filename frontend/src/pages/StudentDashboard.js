@@ -53,13 +53,14 @@ const StudentDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const userDepartment = user?.department || '';
         const [annData, schedData, allSchedData, assignData, upcomingData, courseData] = await Promise.all([
-          announcementService.getAll({ limit: 10 }),
-          scheduleService.getAll({ day: today }),
-          scheduleService.getAll({}),
+          announcementService.getAll({ department: userDepartment, limit: 10 }),
+          scheduleService.getAll({ day: today, department: user?.department }),
+          scheduleService.getAll({ department: user?.department }),
           assignmentService.getAll(),
           assignmentService.getUpcoming(),
-          courseService.getAll({})
+          courseService.getAll({ department: userDepartment })
         ]);
         setAnnouncements(annData.announcements || annData || []);
         setTodaySchedule(schedData || []);

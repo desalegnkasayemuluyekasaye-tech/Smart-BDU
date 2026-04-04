@@ -26,4 +26,12 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const lecturer = (req, res, next) => {
+  if (req.user && (req.user.role === 'lecturer' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(403).json({ message: 'Not authorized as lecturer' });
+  }
+};
+
+module.exports = { protect, admin, lecturer };

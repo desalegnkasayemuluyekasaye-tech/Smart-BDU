@@ -13,7 +13,13 @@ const LecturerDashboard = () => {
   const [myCourses, setMyCourses] = useState([]);
   const [mySchedule, setMySchedule] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [materialForm, setMaterialForm] = useState({ title: '', url: '', type: 'link' });
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '', category: 'academic', priority: 'normal', department: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
 
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const today = days[new Date().getDay()];
@@ -34,6 +40,7 @@ const LecturerDashboard = () => {
         setMyCourses(lecturerCourses.length > 0 ? lecturerCourses : courseData?.slice(0, 3) || []);
         setMySchedule(schedData || []);
         setAssignments(assignData || []);
+        setAnnouncements(annData.announcements || annData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -58,6 +65,48 @@ const LecturerDashboard = () => {
     if (diff <= 0) return 'Overdue';
     if (diff === 1) return 'Tomorrow';
     return `${diff} days`;
+  };
+
+  const handleAddMaterial = async (e) => {
+    e.preventDefault();
+    if (!selectedCourse || !materialForm.title || !materialForm.url) return;
+    
+    setSubmitting(true);
+    try {
+      await courseService.addMaterial(selectedCourse._id, materialForm);
+      setMessage('Material added successfully!');
+      setMaterialForm({ title: '', url: '', type: 'link' });
+      const courseData = await courseService.getAll({});
+      const lecturerCourses = (courseData || []).filter(c => 
+        c.instructor && user?.name && c.instructor.toLowerCase().includes(user.name.split(' ').pop()?.toLowerCase() || '')
+      );
+      setMyCourses(lecturerCourses.length > 0 ? lecturerCourses : courseData?.slice(0, 3) || []);
+    } catch (error) {
+      setMessage('Failed to add material. Please try again.');
+    }
+    setSubmitting(false);
+    setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleCreateAnnouncement = async (e) => {
+    e.preventDefault();
+    if (!announcementForm.title || !announcementForm.content) return;
+    
+    setSubmitting(true);
+    try {
+      await announcementService.createAnnouncement({
+        ...announcementForm,
+        department: announcementForm.department || user?.department
+      });
+      setMessage('Announcement posted successfully!');
+      setAnnouncementForm({ title: '', content: '', category: 'academic', priority: 'normal', department: '' });
+      const annData = await announcementService.getAll({ limit: 10 });
+      setAnnouncements(annData.announcements || annData || []);
+    } catch (error) {
+      setMessage('Failed to post announcement. Please try again.');
+    }
+    setSubmitting(false);
+    setTimeout(() => setMessage(''), 3000);
   };
 
   const renderDashboard = () => (
@@ -95,7 +144,7 @@ const LecturerDashboard = () => {
         <div className="stat-card info" onClick={() => setActiveTab('announcements')}>
           <div className="stat-icon">📢</div>
           <div>
-            <div className="stat-value">3</div>
+            <div className="stat-value">{announcements.length}</div>
             <div className="stat-label">Notices</div>
           </div>
         </div>
@@ -163,29 +212,6 @@ const LecturerDashboard = () => {
               <div className="empty-state">No pending assignments to grade</div>
             )}
           </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">📚 My Courses</h3>
-              <button className="view-all-btn" onClick={() => setActiveTab('courses')}>View All →</button>
-            </div>
-            {myCourses.length > 0 ? (
-              <div className="courses-grid">
-                {myCourses.slice(0, 4).map((course, idx) => (
-                  <div key={idx} className="course-card" onClick={() => setActiveTab('courseDetail')}>
-                    <div className="course-code-badge">{course.code}</div>
-                    <div className="course-name">{course.name}</div>
-                    <div className="course-meta">
-                      <span>Year {course.year}</span> • <span>Sem {course.semester}</span>
-                    </div>
-                    <div className="course-instructor">👨‍🏫 {course.instructor}</div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-state">No courses assigned</div>
-            )}
-          </div>
         </div>
 
         <div className="sidebar">
@@ -195,63 +221,207 @@ const LecturerDashboard = () => {
             </div>
             <div className="quick-links-grid">
               <div className="quick-link-item" onClick={() => setActiveTab('courses')}>
-                <span className="ql-icon">📊</span>
-                <span>Grade Book</span>
+                <span className="ql-icon">📚</span>
+                <span>My Courses</span>
               </div>
               <div className="quick-link-item" onClick={() => setActiveTab('schedule')}>
                 <span className="ql-icon">📅</span>
                 <span>Schedule</span>
               </div>
-              <div className="quick-link-item" onClick={() => navigate('/app/directory')}>
-                <span className="ql-icon">👥</span>
-                <span>Students</span>
+              <div className="quick-link-item" onClick={() => setActiveTab('postMaterial')}>
+                <span className="ql-icon">📎</span>
+                <span>Add Material</span>
               </div>
               <div className="quick-link-item" onClick={() => setActiveTab('announcements')}>
                 <span className="ql-icon">📢</span>
-                <span>Notices</span>
-              </div>
-              <div className="quick-link-item" onClick={() => navigate('/app/ai-assistant')}>
-                <span className="ql-icon">🤖</span>
-                <span>AI Helper</span>
-              </div>
-              <div className="quick-link-item" onClick={() => navigate('/app/services')}>
-                <span className="ql-icon">🛠️</span>
-                <span>Services</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">📆 Upcoming Events</h3>
-            </div>
-            <div className="events-list">
-              <div className="event-item">
-                <span className="event-icon">🎓</span>
-                <div className="event-info">
-                  <div className="event-title">Faculty Meeting</div>
-                  <div className="event-date">Apr 24, 2024 • 10:00 AM</div>
-                </div>
-              </div>
-              <div className="event-item">
-                <span className="event-icon">📖</span>
-                <div className="event-info">
-                  <div className="event-title">Research Seminar</div>
-                  <div className="event-date">Apr 27, 2024 • 2:00 PM</div>
-                </div>
-              </div>
-              <div className="event-item">
-                <span className="event-icon">📝</span>
-                <div className="event-info">
-                  <div className="event-title">Mid-term Exam Review</div>
-                  <div className="event-date">May 1, 2024 • 9:00 AM</div>
-                </div>
+                <span>Post Notice</span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </>
+  );
+
+  const renderCourses = () => (
+    <div className="page-content">
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">📚 My Courses - Click to Add Materials</h3>
+        </div>
+        {myCourses.length > 0 ? (
+          <div className="courses-grid">
+            {myCourses.map((course, idx) => (
+              <div key={idx} className="course-card clickable" onClick={() => { setSelectedCourse(course); setActiveTab('postMaterial'); }}>
+                <div className="course-code-badge">{course.code}</div>
+                <div className="course-name">{course.name}</div>
+                <div className="course-meta">
+                  <span>Year {course.year}</span> • <span>Sem {course.semester}</span> • <span>{course.credits} Credits</span>
+                </div>
+                <div className="course-instructor">👨‍🏫 {course.instructor}</div>
+                <div className="course-materials">
+                  📚 {course.materials?.length || 0} materials
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">No courses assigned</div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderPostMaterial = () => (
+    <div className="page-content">
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">📎 Add Course Material</h3>
+        </div>
+        
+        {selectedCourse ? (
+          <div>
+            <div className="selected-course-info">
+              <span className="course-code-badge">{selectedCourse.code}</span>
+              <span>{selectedCourse.name}</span>
+              <button className="change-course-btn" onClick={() => setSelectedCourse(null)}>Change</button>
+            </div>
+            
+            {message && <div className="success-message">{message}</div>}
+            
+            <form onSubmit={handleAddMaterial} className="material-form">
+              <div className="form-group">
+                <label>Material Title *</label>
+                <input 
+                  type="text" 
+                  value={materialForm.title}
+                  onChange={(e) => setMaterialForm({...materialForm, title: e.target.value})}
+                  placeholder="e.g., Lecture 1 - Introduction"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>URL *</label>
+                <input 
+                  type="url" 
+                  value={materialForm.url}
+                  onChange={(e) => setMaterialForm({...materialForm, url: e.target.value})}
+                  placeholder="https://..."
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Type</label>
+                <select value={materialForm.type} onChange={(e) => setMaterialForm({...materialForm, type: e.target.value})}>
+                  <option value="link">Link</option>
+                  <option value="pdf">PDF</option>
+                  <option value="video">Video</option>
+                </select>
+              </div>
+              <button type="submit" className="submit-btn" disabled={submitting}>
+                {submitting ? 'Adding...' : 'Add Material'}
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div>
+            <p>Select a course to add materials:</p>
+            <div className="courses-grid">
+              {myCourses.map((course, idx) => (
+                <div key={idx} className="course-card clickable" onClick={() => setSelectedCourse(course)}>
+                  <div className="course-code-badge">{course.code}</div>
+                  <div className="course-name">{course.name}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderAnnouncements = () => (
+    <div className="page-content">
+      <div className="card">
+        <div className="card-header">
+          <h3 className="card-title">📢 Post Announcement for Your Department</h3>
+        </div>
+        
+        {message && <div className="success-message">{message}</div>}
+        
+        <form onSubmit={handleCreateAnnouncement} className="announcement-form">
+          <div className="form-group">
+            <label>Title *</label>
+            <input 
+              type="text" 
+              value={announcementForm.title}
+              onChange={(e) => setAnnouncementForm({...announcementForm, title: e.target.value})}
+              placeholder="Announcement title"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Content *</label>
+            <textarea 
+              value={announcementForm.content}
+              onChange={(e) => setAnnouncementForm({...announcementForm, content: e.target.value})}
+              placeholder="Write your announcement..."
+              rows="4"
+              required
+            />
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Category</label>
+              <select value={announcementForm.category} onChange={(e) => setAnnouncementForm({...announcementForm, category: e.target.value})}>
+                <option value="general">General</option>
+                <option value="academic">Academic</option>
+                <option value="event">Event</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Priority</label>
+              <select value={announcementForm.priority} onChange={(e) => setAnnouncementForm({...announcementForm, priority: e.target.value})}>
+                <option value="normal">Normal</option>
+                <option value="important">Important</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Department (auto-filled from your profile)</label>
+            <input 
+              type="text" 
+              value={announcementForm.department || user?.department || ''}
+              onChange={(e) => setAnnouncementForm({...announcementForm, department: e.target.value})}
+              placeholder={user?.department}
+            />
+          </div>
+          <button type="submit" className="submit-btn" disabled={submitting}>
+            {submitting ? 'Posting...' : 'Post Announcement'}
+          </button>
+        </form>
+
+        <h4 style={{marginTop: '30px', marginBottom: '15px'}}>Previous Announcements</h4>
+        {announcements.length > 0 ? (
+          <div>
+            {announcements.map((ann, idx) => (
+              <div key={idx} className={`announcement-full ${ann.priority}`}>
+                <div className="announcement-full-header">
+                  <h4>{ann.title}</h4>
+                  <span className="tag">{ann.category}</span>
+                </div>
+                <p className="announcement-full-content">{ann.content}</p>
+                <div className="announcement-full-date">{formatDate(ann.createdAt)} • {ann.department}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">No announcements yet</div>
+        )}
+      </div>
+    </div>
   );
 
   const renderSchedule = () => (
@@ -262,11 +432,7 @@ const LecturerDashboard = () => {
         </div>
         <div className="tab-container">
           {days.slice(1, 6).map(day => (
-            <button
-              key={day}
-              className={`tab ${today === day ? 'active' : ''}`}
-              onClick={() => {}}
-            >
+            <button key={day} className={`tab ${today === day ? 'active' : ''}`}>
               {day.charAt(0).toUpperCase() + day.slice(1)}
             </button>
           ))}
@@ -316,9 +482,7 @@ const LecturerDashboard = () => {
                   <div className="assignment-course">{assign.courseName} ({assign.courseCode})</div>
                 </div>
                 <div className="assignment-due">
-                  <div className={`status-badge ${assign.status}`}>
-                    {assign.status}
-                  </div>
+                  <div className={`status-badge ${assign.status}`}>{assign.status}</div>
                   <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
                 </div>
               </div>
@@ -331,61 +495,7 @@ const LecturerDashboard = () => {
     </div>
   );
 
-  const renderCourses = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📚 My Courses</h3>
-        </div>
-        {myCourses.length > 0 ? (
-          <div className="courses-grid">
-            {myCourses.map((course, idx) => (
-              <div key={idx} className="course-card">
-                <div className="course-code-badge">{course.code}</div>
-                <div className="course-name">{course.name}</div>
-                <div className="course-meta">
-                  <span>Year {course.year}</span> • <span>Sem {course.semester}</span> • <span>{course.credits} Credits</span>
-                </div>
-                <div className="course-instructor">👨‍🏫 {course.instructor}</div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="empty-state">No courses assigned</div>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderAnnouncements = () => (
-    <div className="page-content">
-      <div className="card">
-        <div className="card-header">
-          <h3 className="card-title">📢 Announcements</h3>
-        </div>
-        <div className="announcement-full">
-          <div className="announcement-full-header">
-            <h4>Faculty Meeting Tomorrow</h4>
-            <span className="tag">Event</span>
-          </div>
-          <p className="announcement-full-content">All faculty members are requested to attend the monthly meeting tomorrow at 10:00 AM in the main auditorium.</p>
-          <div className="announcement-full-date">Posted on Apr 23, 2024</div>
-        </div>
-        <div className="announcement-full">
-          <div className="announcement-full-header">
-            <h4>Mid-term Exam Schedule</h4>
-            <span className="tag">Academic</span>
-          </div>
-          <p className="announcement-full-content">The mid-term exams will be held from May 15-20, 2024. Please submit your exam questions by May 1st.</p>
-          <div className="announcement-full-date">Posted on Apr 20, 2024</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (loading) {
-    return <div className="loading"><div className="spinner"></div></div>;
-  }
+  if (loading) return <div className="loading"><div className="spinner"></div></div>;
 
   return (
     <div className="student-layout">
@@ -395,24 +505,22 @@ const LecturerDashboard = () => {
         </div>
         <ul className="sidebar-menu">
           <li className={`menu-item ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setMenuOpen(false); }}>
-            <span className="menu-icon">🏠</span>
-            <span>Dashboard</span>
+            <span className="menu-icon">🏠</span><span>Dashboard</span>
           </li>
           <li className={`menu-item ${activeTab === 'courses' ? 'active' : ''}`} onClick={() => { setActiveTab('courses'); setMenuOpen(false); }}>
-            <span className="menu-icon">📚</span>
-            <span>My Courses</span>
+            <span className="menu-icon">📚</span><span>My Courses</span>
+          </li>
+          <li className={`menu-item ${activeTab === 'postMaterial' ? 'active' : ''}`} onClick={() => { setActiveTab('postMaterial'); setMenuOpen(false); }}>
+            <span className="menu-icon">📎</span><span>Add Materials</span>
           </li>
           <li className={`menu-item ${activeTab === 'schedule' ? 'active' : ''}`} onClick={() => { setActiveTab('schedule'); setMenuOpen(false); }}>
-            <span className="menu-icon">📅</span>
-            <span>Schedule</span>
+            <span className="menu-icon">📅</span><span>Schedule</span>
           </li>
           <li className={`menu-item ${activeTab === 'assignments' ? 'active' : ''}`} onClick={() => { setActiveTab('assignments'); setMenuOpen(false); }}>
-            <span className="menu-icon">📝</span>
-            <span>Assignments</span>
+            <span className="menu-icon">📝</span><span>Assignments</span>
           </li>
           <li className={`menu-item ${activeTab === 'announcements' ? 'active' : ''}`} onClick={() => { setActiveTab('announcements'); setMenuOpen(false); }}>
-            <span className="menu-icon">📢</span>
-            <span>Announcements</span>
+            <span className="menu-icon">📢</span><span>Announcements</span>
           </li>
         </ul>
         <div className="sidebar-footer">
@@ -420,7 +528,7 @@ const LecturerDashboard = () => {
             <div className="user-avatar lecturer-avatar">{user?.name?.charAt(0)}</div>
             <div className="user-info">
               <div className="user-name">Dr. {user?.name}</div>
-              <div className="user-role">{user?.department} • Lecturer</div>
+              <div className="user-role">{user?.department}</div>
             </div>
           </div>
           <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
@@ -432,11 +540,9 @@ const LecturerDashboard = () => {
       <main className="student-main">
         <header className="student-header">
           <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span>
           </button>
-          <h1>{activeTab === 'dashboard' ? 'Dashboard' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
+          <h1>{activeTab === 'dashboard' ? 'Dashboard' : activeTab === 'postMaterial' ? 'Add Materials' : activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h1>
           <div className="header-user">
             <span className="header-avatar">{user?.name?.charAt(0)}</span>
           </div>
@@ -444,9 +550,10 @@ const LecturerDashboard = () => {
 
         <div className="student-content">
           {activeTab === 'dashboard' && renderDashboard()}
+          {activeTab === 'courses' && renderCourses()}
+          {activeTab === 'postMaterial' && renderPostMaterial()}
           {activeTab === 'schedule' && renderSchedule()}
           {activeTab === 'assignments' && renderAssignments()}
-          {activeTab === 'courses' && renderCourses()}
           {activeTab === 'announcements' && renderAnnouncements()}
         </div>
       </main>

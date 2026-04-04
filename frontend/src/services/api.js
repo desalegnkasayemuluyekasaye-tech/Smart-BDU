@@ -73,6 +73,16 @@ export const courseService = {
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Failed to create course');
     return result;
+  },
+  addMaterial: async (courseId, materialData) => {
+    const res = await fetch(`${API_URL}/courses/${courseId}/materials`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify(materialData)
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.message || 'Failed to add material');
+    return result;
   }
 };
 
