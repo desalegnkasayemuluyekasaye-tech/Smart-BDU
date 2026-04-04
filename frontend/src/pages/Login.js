@@ -77,7 +77,7 @@ const Login = () => {
                 className="login-input"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
-                placeholder="Enter ID (e.g., BDU160129 or TG123456)"
+                placeholder="Enter university ID"
                 required
               />
             </div>
