@@ -1,299 +1,170 @@
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const axios = require('axios');
 
-const DEFAULT_MODEL = 'Qwen/Qwen2.5-1.5B-Instruct';
-const HF_INFERENCE_BASE = 'https://api-inference.huggingface.co/models';
+const SYSTEM_PROMPT = `You are an AI assistant for Bahir Dar University (BDU). Your role is to help students, staff, and users by answering questions related to BDU campus life, departments, admissions, registration, courses, schedules, academic rules, facilities, and general university guidance.
 
-/** Qwen2.5 Instruct chat format (matches HF tokenizer chat template). */
-const IM_START = '<|im_start|>';
-const IM_END = '<|im_end|>';
+Instructions:
+- Always respond in a clear, friendly, and helpful tone.
+- Keep answers concise but informative.
+- If the user asks about BDU-specific topics, provide structured and practical guidance.
+- If you are unsure about a specific answer, say that you do not have exact information and suggest what the user should do next.
+- Avoid giving incorrect or fabricated official policies.
+- You may explain general university concepts if BDU-specific data is not available.
+- Encourage students and guide them step by step when needed.
+- Support conversational chat like a help assistant.
+You are embedded inside SmartBDU. Always stay focused on being a campus assistant for BDU.`;
 
-function getApiKey() {
-  const k = process.env.HUGGING_FACE_API_KEY;
-  return k && String(k).trim() ? String(k).trim() : null;
-}
+// ── Gemini ────────────────────────────────────────────────────────────────────
+async function askGemini(message, history, systemContext) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('No GEMINI_API_KEY');
 
-function getChatModel() {
-  return (process.env.HUGGING_FACE_CHAT_MODEL || DEFAULT_MODEL).trim();
-}
+  const genAI = new GoogleGenerativeAI(key);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
-function buildQwenChatPrompt(systemText, history, userMessage) {
-  let prompt = `${IM_START}system\n${systemText}${IM_END}\n`;
-  const safeHistory = Array.isArray(history) ? history.slice(-12) : [];
-  for (const h of safeHistory) {
-    const role = h.role === 'assistant' ? 'assistant' : 'user';
-    const content = String(h.content || '').trim();
-    if (!content) continue;
-    prompt += `${IM_START}${role}\n${content}${IM_END}\n`;
-  }
-  prompt += `${IM_START}user\n${String(userMessage).trim()}${IM_END}\n${IM_START}assistant\n`;
-  return prompt;
-}
+  const geminiHistory = [
+    { role: 'user',  parts: [{ text: systemContext }] },
+    { role: 'model', parts: [{ text: 'Understood! I am SmartBDU AI, your BDU campus assistant. Ready to help.' }] },
+  ];
 
-function extractGeneratedText(data) {
-  if (!data) return '';
-  if (Array.isArray(data) && data[0] != null) {
-    const first = data[0];
-    if (typeof first === 'string') return first;
-    if (first.generated_text != null) return String(first.generated_text);
-  }
-  if (data.generated_text != null) return String(data.generated_text);
-  return '';
-}
-
-function cleanAssistantReply(text) {
-  if (!text) return '';
-  let out = text.trim();
-  const cut = out.indexOf(IM_START);
-  if (cut !== -1) out = out.slice(0, cut).trim();
-  out = out.split(IM_END)[0].trim();
-  return out;
-}
-
-async function huggingFaceTextGeneration(prompt, { max_new_tokens = 512, temperature = 0.7, model } = {}) {
-  const token = getApiKey();
-  if (!token) {
-    const err = new Error('HUGGING_FACE_API_KEY is not set in backend .env');
-    err.code = 'MISSING_KEY';
-    throw err;
+  for (const h of (history || []).slice(-10)) {
+    if (!h.content?.trim()) continue;
+    geminiHistory.push({
+      role: h.role === 'assistant' || h.role === 'ai' ? 'model' : 'user',
+      parts: [{ text: h.content }],
+    });
   }
 
-  const modelId = model || getChatModel();
-  const url = `${HF_INFERENCE_BASE}/${encodeURIComponent(modelId)}`;
+  const chat = model.startChat({
+    history: geminiHistory,
+    generationConfig: { maxOutputTokens: 600, temperature: 0.7 },
+  });
 
-  const payload = {
-    inputs: prompt,
-    parameters: {
-      max_new_tokens,
-      temperature,
-      top_p: 0.9,
-      do_sample: true,
-      return_full_text: false,
+  const result = await chat.sendMessage(message.trim());
+  return result.response.text()?.trim();
+}
+
+// ── HuggingFace fallback ──────────────────────────────────────────────────────
+async function askHuggingFace(message, history, systemContext) {
+  const key = process.env.HUGGING_FACE_API_KEY;
+  if (!key) throw new Error('No HUGGING_FACE_API_KEY');
+
+  // Build messages array for the new router API (OpenAI-compatible)
+  const messages = [{ role: 'system', content: systemContext }];
+  for (const h of (history || []).slice(-8)) {
+    if (!h.content?.trim()) continue;
+    messages.push({
+      role: h.role === 'assistant' || h.role === 'ai' ? 'assistant' : 'user',
+      content: h.content,
+    });
+  }
+  messages.push({ role: 'user', content: message });
+
+  const res = await axios.post(
+    'https://router.huggingface.co/novita/v3/openai/chat/completions',
+    {
+      model: 'meta-llama/llama-3.1-8b-instruct',
+      messages,
+      max_tokens: 500,
+      temperature: 0.7,
     },
-  };
+    {
+      headers: {
+        Authorization: `Bearer ${key}`,
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000,
+    }
+  );
 
-  const config = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    timeout: 120000,
-    validateStatus: () => true,
-  };
-
-  let res = await axios.post(url, payload, config);
-
-  if (res.status === 503) {
-    await new Promise((r) => setTimeout(r, 20000));
-    res = await axios.post(url, payload, config);
-  }
-
-  if (res.status === 401 || res.status === 403) {
-    const err = new Error('Invalid or unauthorized Hugging Face API key.');
-    err.code = 'HF_AUTH';
-    err.status = res.status;
-    throw err;
-  }
-
-  if (res.status === 503) {
-    const err = new Error('Model is loading or busy. Try again in a minute.');
-    err.code = 'HF_503';
-    err.status = 503;
-    throw err;
-  }
-
-  if (res.status >= 400) {
-    const msg =
-      (res.data && (res.data.error || res.data.message)) ||
-      `Hugging Face API error (${res.status})`;
-    const err = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
-    err.code = 'HF_ERROR';
-    err.status = res.status;
-    throw err;
-  }
-
-  const raw = extractGeneratedText(res.data);
-  return cleanAssistantReply(raw);
+  const text = res.data?.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error('Empty HuggingFace response');
+  return text;
 }
 
+// ── Main handler ──────────────────────────────────────────────────────────────
 const chatWithAI = async (req, res) => {
   try {
-    const { message, history, userData } = req.body;
+    const { message, history = [], userData } = req.body;
 
-    if (!message || !String(message).trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Message is required',
-        response: null,
-      });
+    if (!message?.trim()) {
+      return res.status(400).json({ success: false, response: null, error: 'Message is required' });
     }
 
-    if (!getApiKey()) {
-      return res.status(503).json({
-        success: false,
-        error: 'AI is not configured. Set HUGGING_FACE_API_KEY in backend/.env and restart the server.',
-        response: null,
-      });
-    }
-
-    let systemText =
-      'You are SmartBDU AI, a helpful assistant for Bahir Dar University (Ethiopia). ' +
-      'Answer clearly and concisely. For personal schedules, grades, or assignments, tell the user to check their SmartBDU dashboard for live data. ' +
-      'If you are unsure about university-specific facts, say so and suggest official university sources.';
-
+    let systemContext = SYSTEM_PROMPT;
     if (userData) {
-      systemText += `\n\nUser context: role=${userData.role || 'student'}`;
-      if (userData.name) systemText += `, name=${userData.name}`;
-      if (userData.department) systemText += `, department=${userData.department}`;
-      if (userData.year != null && userData.year !== '') systemText += `, year=${userData.year}`;
-      systemText += '.';
+      systemContext += `\n\nCurrent user: role=${userData.role || 'student'}`;
+      if (userData.name)       systemContext += `, name=${userData.name}`;
+      if (userData.department) systemContext += `, department=${userData.department}`;
+      if (userData.year)       systemContext += `, year=${userData.year}`;
     }
 
-    const safeHistory = Array.isArray(history)
-      ? history.map((h) => ({
-          role: h.role === 'assistant' || h.role === 'ai' ? 'assistant' : 'user',
-          content: h.content,
-        }))
-      : [];
+    let response = null;
+    let lastError = null;
 
-    const prompt = buildQwenChatPrompt(systemText, safeHistory, message);
-    let aiResponse = await huggingFaceTextGeneration(prompt, {
-      max_new_tokens: 512,
-      temperature: 0.65,
-    });
-
-    if (!aiResponse || aiResponse.length < 2) {
-      aiResponse =
-        "I'm here to help. Could you rephrase your question, or ask something more specific about campus or academics?";
+    // Try HuggingFace first (Gemini quota exhausted)
+    try {
+      response = await askHuggingFace(message, history, systemContext);
+      console.log('✅ HuggingFace responded');
+    } catch (e) {
+      console.warn('⚠️ HuggingFace failed:', e.message);
+      lastError = e;
     }
 
-    if (aiResponse.length > 4000) {
-      aiResponse = `${aiResponse.slice(0, 3997)}...`;
+    // Fall back to Gemini
+    if (!response) {
+      try {
+        response = await askGemini(message, history, systemContext);
+        console.log('✅ Gemini responded');
+      } catch (e) {
+        console.error('⚠️ Gemini also failed:', e.message);
+        lastError = e;
+      }
     }
 
-    return res.json({
-      success: true,
-      response: aiResponse,
-    });
-  } catch (error) {
-    console.error('AI chat error:', error.code || error.message, error.response?.data || '');
-
-    if (error.code === 'MISSING_KEY') {
-      return res.status(503).json({
+    if (!response) {
+      return res.status(502).json({
         success: false,
-        error: error.message,
         response: null,
+        error: lastError?.message || 'Both AI services failed',
       });
     }
 
-    if (error.code === 'HF_503') {
-      return res.status(503).json({
-        success: false,
-        error: error.message,
-        response: null,
-      });
-    }
+    return res.json({ success: true, response });
 
-    const msg =
-      error.code === 'HF_AUTH'
-        ? 'Hugging Face API key is invalid. Check HUGGING_FACE_API_KEY in .env.'
-        : error.message || 'Could not reach the AI service.';
-
-    return res.status(502).json({
-      success: false,
-      error: msg,
-      response: null,
-    });
+  } catch (err) {
+    console.error('AI chat error:', err.message);
+    return res.status(500).json({ success: false, response: null, error: err.message });
   }
 };
 
 const generateRoadmap = async (req, res) => {
   try {
-    if (!getApiKey()) {
-      return res.status(503).json({
-        success: false,
-        error: 'Set HUGGING_FACE_API_KEY in backend/.env',
-      });
-    }
-
     const { target, currentLevel, timeframe } = req.body;
-
-    const userBlock = `Create a detailed learning roadmap for ${target} for a ${currentLevel} learner who wants to achieve this in ${timeframe}. Include:
-1. Key topics to learn in order
-2. Suggested resources (books, courses, tutorials)
-3. Practical projects to build
-4. Milestones and checkpoints
-5. Estimated time for each phase`;
-
-    const systemText =
-      'You are a learning coach. Respond with structured, actionable sections. Be concise but complete.';
-    const prompt = buildQwenChatPrompt(systemText, [], userBlock);
-
-    const roadmap = await huggingFaceTextGeneration(prompt, {
-      max_new_tokens: 800,
-      temperature: 0.7,
-    });
-
-    return res.json({
-      success: true,
-      roadmap: roadmap || 'Unable to generate roadmap. Please try again.',
-    });
-  } catch (error) {
-    console.error('Roadmap generation error:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to generate roadmap',
-    });
+    const prompt = `Create a detailed learning roadmap for "${target}" for a ${currentLevel} learner in ${timeframe}. Include key topics, resources, projects, milestones, and time estimates.`;
+    let result = null;
+    try { result = await askGemini(prompt, [], SYSTEM_PROMPT); } catch (_) {}
+    if (!result) result = await askHuggingFace(prompt, [], SYSTEM_PROMPT);
+    return res.json({ success: true, roadmap: result });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 };
 
 const generateCV = async (req, res) => {
   try {
-    if (!getApiKey()) {
-      return res.status(503).json({
-        success: false,
-        error: 'Set HUGGING_FACE_API_KEY in backend/.env',
-      });
-    }
-
     const { personalInfo, education, experience, skills } = req.body;
-
-    const userBlock = `Create a professional CV/resume with the following information:
-
-PERSONAL INFO:
-- Name: ${personalInfo?.name || 'N/A'}
-- Email: ${personalInfo?.email || 'N/A'}
-- Phone: ${personalInfo?.phone || 'N/A'}
-- Location: ${personalInfo?.location || 'N/A'}
-
-EDUCATION:
-${education?.map((e) => `- ${e.degree} at ${e.institution} (${e.year})`).join('\n') || 'N/A'}
-
-EXPERIENCE:
-${experience?.map((e) => `- ${e.title} at ${e.company} (${e.period}): ${e.description}`).join('\n') || 'N/A'}
-
-SKILLS:
-${skills?.join(', ') || 'N/A'}
-
-Format as a clean, professional CV with clear sections and bullet points.`;
-
-    const systemText = 'You are a professional resume writer. Output only the CV text, well formatted.';
-    const prompt = buildQwenChatPrompt(systemText, [], userBlock);
-
-    const cv = await huggingFaceTextGeneration(prompt, {
-      max_new_tokens: 1000,
-      temperature: 0.65,
-    });
-
-    return res.json({
-      success: true,
-      cv: cv || 'Unable to generate CV. Please try again.',
-    });
-  } catch (error) {
-    console.error('CV generation error:', error.message);
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to generate CV',
-    });
+    const prompt = `Create a professional CV for:
+Name: ${personalInfo?.name}, Email: ${personalInfo?.email}
+Education: ${education?.map(e => `${e.degree} at ${e.institution} (${e.year})`).join(', ')}
+Experience: ${experience?.map(e => `${e.title} at ${e.company}: ${e.description}`).join(', ')}
+Skills: ${skills?.join(', ')}`;
+    let result = null;
+    try { result = await askGemini(prompt, [], SYSTEM_PROMPT); } catch (_) {}
+    if (!result) result = await askHuggingFace(prompt, [], SYSTEM_PROMPT);
+    return res.json({ success: true, cv: result });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
   }
 };
 
