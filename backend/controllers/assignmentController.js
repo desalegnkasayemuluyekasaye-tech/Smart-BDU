@@ -2,17 +2,24 @@ const Assignment = require('../models/Assignment');
 
 const getAssignments = async (req, res) => {
   try {
-    const { course, status, dueDate, section } = req.query;
+    const { course, status, dueDate, section, department, year } = req.query;
     const query = {};
     if (course) query.course = course;
     if (status) query.status = status;
-    if (section) query.$or = [
-      { section },
-      { section: '' },
-      { section: { $exists: false } }
-    ];
+    if (department) query.department = department;
+    if (year) query.year = parseInt(year);
+    if (section) {
+      query.$or = [
+        { section },
+        { section: '' },
+        { section: { $exists: false } }
+      ];
+    }
 
-    const assignments = await Assignment.find(query).sort({ dueDate: 1 });
+    const assignments = await Assignment.find(query)
+      .populate('submittedBy', 'name studentId')
+      .populate('submittedFile', 'fileName title')
+      .sort({ dueDate: 1 });
     res.json(assignments);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -105,16 +112,20 @@ const reviewSubmission = async (req, res) => {
 
 const getUpcomingAssignments = async (req, res) => {
   try {
-    const { section } = req.query;
+    const { section, department, year } = req.query;
     const query = {
       dueDate: { $gte: new Date() },
       status: { $ne: 'submitted' }
     };
-    if (section) query.$or = [
-      { section },
-      { section: '' },
-      { section: { $exists: false } }
-    ];
+    if (department) query.department = department;
+    if (year) query.year = parseInt(year);
+    if (section) {
+      query.$or = [
+        { section },
+        { section: '' },
+        { section: { $exists: false } }
+      ];
+    }
 
     const assignments = await Assignment.find(query).sort({ dueDate: 1 }).limit(5);
     res.json(assignments);

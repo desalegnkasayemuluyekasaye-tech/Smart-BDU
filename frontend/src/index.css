@@ -199,11 +199,12 @@ body {
 
 .app-footer {
   width: 100%;
-  background-color: #1e3a5f;
-  color: rgba(255, 255, 255, 0.9);
+  background-color: #0a0118;
+  color: #a06ee1;
   padding: 18px 24px;
   text-align: center;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(160, 110, 225, 0.2);
+  box-shadow: 0 -4px 15px rgba(160, 110, 225, 0.1);
 }
 
 .footer-content {
@@ -1335,6 +1336,39 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0;
+  position: relative;
+}
+
+.back-to-home {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: white;
+  border: 1.5px solid #e3eaf5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e3a5f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  z-index: 10;
+}
+
+.back-to-home:hover {
+  transform: translateX(-4px);
+  background: #f7faff;
+  border-color: #1565c0;
+  color: #1565c0;
+  box-shadow: 0 6px 16px rgba(21,101,192,0.15);
+}
+
+.back-to-home svg {
+  width: 20px;
+  height: 20px;
 }
 
 .campus-card-box {
@@ -1433,11 +1467,48 @@ body {
   flex-shrink: 0;
 }
 
-.campus-item-name {
+.campus-item.inactive {
+  opacity: 0.7;
+  background: #f1f3f5;
+  border-color: #dee2e6;
+  cursor: default;
+}
+
+.campus-item.inactive:hover {
+  transform: none;
+  background: #f1f3f5;
+  border-color: #dee2e6;
+  box-shadow: none;
+}
+
+.campus-item.inactive .campus-item-name {
+  color: #6c757d;
+}
+
+.campus-item.inactive .campus-item-img {
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
+.campus-item-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.campus-item-name {
   font-size: 16px;
   font-weight: 600;
   color: #1565c0;
+}
+
+.coming-soon-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f44336;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .campus-item-arrow {
@@ -1457,6 +1528,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0;
+  position: relative;
 }
 
 .login-campus-banner {
