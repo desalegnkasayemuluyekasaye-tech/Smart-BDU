@@ -13,6 +13,7 @@ const directoryRoutes = require('./routes/directoryRoutes');
 const aiRoutes = require('./routes/aiRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const postRoutes = require('./routes/postRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use('/api/directory', directoryRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'SmartBDU API is running' });

@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   employeeId: { type: String, unique: true, sparse: true },
   department: { type: String },
   year: { type: Number },
+  semester: { type: String, enum: ['1', '2'] },
   section: { type: String },
   phone: { type: String },
   role: { type: String, enum: ['student', 'admin', 'lecturer'], default: 'student' },

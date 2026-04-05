@@ -29,14 +29,35 @@ const SIDEBAR_NAV = [
   { id: 'schedule',      icon: '📅', label: 'Schedule' },
 ];
 
+const DEPARTMENTS = [
+  'Computer Science',
+  'Software Engineering',
+  'Information Technology',
+  'Information Systems',
+  'Electrical Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Chemical Engineering',
+  'Mathematics',
+  'Physics',
+  'Chemistry',
+  'Biology',
+  'Business Administration',
+  'Accounting',
+  'Economics',
+  'Management',
+  'Law',
+  'Medicine',
+  'Nursing',
+  'Pharmacy'
+];
+
 const Admin = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [modal, setModal] = useState(null);
 
   const [studentForm, setStudentForm] = useState(EMPTY_STUDENT);
@@ -77,7 +98,7 @@ const Admin = () => {
     else if (activeTab === 'courses') fetchCourses();
     else if (activeTab === 'announcements') fetchAnnouncements();
     else if (activeTab === 'schedule') fetchSchedules();
-    setMessage(''); setError(''); setCreatedUserPassword(null);
+    setCreatedUserPassword(null);
   }, [activeTab]);
 
   const fetchUsers = async () => { setUsersLoading(true); try { setUsers(await adminService.getUsers()); } catch (e) { console.error(e); } setUsersLoading(false); };
@@ -86,53 +107,53 @@ const Admin = () => {
   const fetchSchedules = async () => { setSchedulesLoading(true); try { setSchedules(await scheduleService.getAll()); } catch (e) { console.error(e); } setSchedulesLoading(false); };
 
   const handleLogout = () => { logout(); navigate('/login'); };
-  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setMessage(''); setError(''); setCreatedUserPassword(null); };
+  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setCreatedUserPassword(null); };
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
-    if (!studentForm.name || !studentForm.email || !studentForm.studentId || !studentForm.department || !studentForm.year) { setError('Fill all required fields'); return; }
+    if (!studentForm.name || !studentForm.email || !studentForm.studentId || !studentForm.department || !studentForm.year) { toast.error('Fill all required fields'); return; }
     setStudentLoading(true); setCreatedUserPassword(null);
     try {
       await adminService.createUser({ ...studentForm, role: 'student', year: parseInt(studentForm.year) });
-      setMessage('Student added! Initial password = Student ID');
+      toast.success('Student added! Initial password = Student ID');
       setCreatedUserPassword({ name: studentForm.name, id: studentForm.studentId, password: studentForm.studentId });
-      setStudentForm(EMPTY_STUDENT); setError(''); setModal(null); fetchUsers();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      setStudentForm(EMPTY_STUDENT); setModal(null); fetchUsers();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setStudentLoading(false);
   };
 
   const handleTeacherSubmit = async (e) => {
     e.preventDefault();
-    if (!teacherForm.name || !teacherForm.email || !teacherForm.department || !teacherForm.employeeId) { setError('Fill all required fields'); return; }
+    if (!teacherForm.name || !teacherForm.email || !teacherForm.department || !teacherForm.employeeId) { toast.error('Fill all required fields'); return; }
     setTeacherLoading(true); setCreatedUserPassword(null);
     try {
       const departments = teacherForm.departments ? teacherForm.departments.split(',').map(d => d.trim()).filter(Boolean) : [teacherForm.department];
       const batches = teacherForm.batches ? teacherForm.batches.split(',').map(b => b.trim()).filter(Boolean) : [];
       const sections = teacherForm.sections ? teacherForm.sections.split(',').map(s => s.trim()).filter(Boolean) : [];
       await adminService.createUser({ ...teacherForm, role: 'lecturer', departments, batches, sections });
-      setMessage('Teacher added! Initial password = Employee ID');
+      toast.success('Teacher added! Initial password = Employee ID');
       setCreatedUserPassword({ name: teacherForm.name, id: teacherForm.employeeId, password: teacherForm.employeeId });
-      setTeacherForm(EMPTY_TEACHER); setError(''); setModal(null); fetchUsers();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      setTeacherForm(EMPTY_TEACHER); setModal(null); fetchUsers();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setTeacherLoading(false);
   };
 
   const handleDeleteUser = async (id) => {
     if (!window.confirm('Delete this user?')) return;
-    try { await adminService.deleteUser(id); setMessage('User deleted'); fetchUsers(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await adminService.deleteUser(id); toast.success('User deleted'); fetchUsers(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleCourseSubmit = async (e) => {
     e.preventDefault();
-    if (!courseHeader.department || !courseHeader.year) { setError('Department and Year are required'); return; }
+    if (!courseHeader.department || !courseHeader.year) { toast.error('Department and Year are required'); return; }
     const validRows = courseRows.filter(r => r.name.trim() && r.code.trim());
-    if (validRows.length === 0) { setError('Add at least one course with name and code'); return; }
+    if (validRows.length === 0) { toast.error('Add at least one course with name and code'); return; }
     setCourseLoading(true);
     try {
       await Promise.all(validRows.map(row => courseService.createCourse({ name: row.name, code: row.code, department: courseHeader.department, year: parseInt(courseHeader.year), semester: row.semester ? parseInt(row.semester) : undefined, credits: row.credits ? parseInt(row.credits) : undefined, instructor: row.instructor })));
-      setMessage(`${validRows.length} course(s) created!`);
-      setCourseHeader({ department: '', year: '' }); setCourseRows([{ ...EMPTY_COURSE_ROW }, { ...EMPTY_COURSE_ROW }]); setError(''); fetchCourses();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      toast.success(`${validRows.length} course(s) created!`);
+      setCourseHeader({ department: '', year: '' }); setCourseRows([{ ...EMPTY_COURSE_ROW }, { ...EMPTY_COURSE_ROW }]); fetchCourses();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setCourseLoading(false);
   };
 
@@ -142,36 +163,36 @@ const Admin = () => {
 
   const handleDeleteCourse = async (id) => {
     if (!window.confirm('Delete this course?')) return;
-    try { await courseService.deleteCourse(id); setMessage('Course deleted'); fetchCourses(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await courseService.deleteCourse(id); toast.success('Course deleted'); fetchCourses(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleAnnouncementSubmit = async (e) => {
     e.preventDefault(); setAnnouncementLoading(true);
     try {
       await announcementService.createAnnouncement(announcementForm);
-      setMessage('Announcement posted!');
+      toast.success('Announcement posted!');
       setAnnouncementForm({ title: '', content: '', category: 'general', priority: 'normal', targetType: 'all', department: '', batch: '', section: '' });
-      setError(''); fetchAnnouncements();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      fetchAnnouncements();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setAnnouncementLoading(false);
   };
 
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm('Delete?')) return;
-    try { await announcementService.deleteAnnouncement(id); setMessage('Deleted'); fetchAnnouncements(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await announcementService.deleteAnnouncement(id); toast.success('Deleted'); fetchAnnouncements(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
-    if (!schedHeader.department || !schedHeader.year) { setError('Department and Year are required'); return; }
+    if (!schedHeader.department || !schedHeader.year) { toast.error('Department and Year are required'); return; }
     const validRows = schedRows.filter(r => r.courseName.trim() && r.day && r.startTime && r.endTime);
-    if (validRows.length === 0) { setError('Add at least one entry with course name, day, and times'); return; }
+    if (validRows.length === 0) { toast.error('Add at least one entry with course name, day, and times'); return; }
     setScheduleLoading(true);
     try {
       const result = await scheduleService.createBatch({ department: schedHeader.department, year: schedHeader.year, semester: schedHeader.semester || undefined, section: schedHeader.section || undefined, entries: validRows });
-      setMessage(`${result.schedules?.length || validRows.length} schedule entries created!`);
-      setSchedHeader({ department: '', year: '', semester: '', section: '' }); setSchedRows([{ ...EMPTY_SCHED_ROW }, { ...EMPTY_SCHED_ROW }]); setError(''); fetchSchedules();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      toast.success(`${result.schedules?.length || validRows.length} schedule entries created!`);
+      setSchedHeader({ department: '', year: '', semester: '', section: '' }); setSchedRows([{ ...EMPTY_SCHED_ROW }, { ...EMPTY_SCHED_ROW }]); fetchSchedules();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setScheduleLoading(false);
   };
 
@@ -181,7 +202,7 @@ const Admin = () => {
 
   const handleDeleteSchedule = async (id) => {
     if (!window.confirm('Delete?')) return;
-    try { await scheduleService.delete(id); setMessage('Deleted'); fetchSchedules(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await scheduleService.delete(id); toast.success('Deleted'); fetchSchedules(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleProfileUpdate = async (e) => {
@@ -230,6 +251,9 @@ const Admin = () => {
             <button className="admin-menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
               <span /><span /><span />
             </button>
+            <button type="button" className="home-btn" onClick={() => navigate('/')} title="Back to Home" aria-label="Back to Home">
+              ← Home
+            </button>
             <span className="admin-header-brand"><img src="/logo.png" alt="SmartBDU" className="admin-header-logo-img" /></span>
           </div>
 
@@ -272,8 +296,6 @@ const Admin = () => {
         </header>
 
         <div className="admin-content">
-          {message && <div className="success-message">{message}</div>}
-          {error && <div className="error-message">{error}</div>}
           {createdUserPassword && (
             <div className="success-message" style={{marginBottom:16,padding:14,background:'#e8f5e9',border:'1px solid #a5d6a7'}}>
               <strong>✅ User Created!</strong>&nbsp; Name: <strong>{createdUserPassword.name}</strong>&nbsp;|&nbsp; ID: <strong>{createdUserPassword.id}</strong>&nbsp;|&nbsp; Password: <strong>{createdUserPassword.password}</strong>
@@ -315,7 +337,7 @@ const Admin = () => {
           {activeTab === 'students' && (
             <div className="tab-content">
               <div className="user-action-bar">
-                <button className="add-user-btn add-student-btn" onClick={() => { setModal('student'); setError(''); setMessage(''); }}>+ Add Student</button>
+                <button className="add-user-btn add-student-btn" onClick={() => { setModal('student'); }}>+ Add Student</button>
                 <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
                   <input type="text" placeholder="Search students..." value={userSearch} onChange={e => setUserSearch(e.target.value)} style={{padding:'7px 12px',borderRadius:8,border:'1px solid #ddd',fontSize:13}} />
                   <button onClick={fetchUsers} className="refresh-btn" disabled={usersLoading}>Refresh</button>
@@ -349,7 +371,7 @@ const Admin = () => {
           {activeTab === 'teachers' && (
             <div className="tab-content">
               <div className="user-action-bar">
-                <button className="add-user-btn add-teacher-btn" onClick={() => { setModal('teacher'); setError(''); setMessage(''); }}>+ Add Teacher</button>
+                <button className="add-user-btn add-teacher-btn" onClick={() => { setModal('teacher'); }}>+ Add Teacher</button>
                 <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
                   <input type="text" placeholder="Search teachers..." value={userSearch} onChange={e => setUserSearch(e.target.value)} style={{padding:'7px 12px',borderRadius:8,border:'1px solid #ddd',fontSize:13}} />
                   <button onClick={fetchUsers} className="refresh-btn" disabled={usersLoading}>Refresh</button>
@@ -665,7 +687,6 @@ const Admin = () => {
               <h2>{modal==='student'?'🎓 Add Student':'👩‍🏫 Add Teacher'}</h2>
               <button className="modal-close" onClick={() => setModal(null)}>✕</button>
             </div>
-            {error && <div className="error-message" style={{marginBottom:12}}>{error}</div>}
 
             {modal === 'student' && (
               <form onSubmit={handleStudentSubmit}>

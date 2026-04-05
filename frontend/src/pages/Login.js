@@ -12,7 +12,6 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
   const { login }  = useAuth();
   const navigate   = useNavigate();
@@ -28,7 +27,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
       const response = await fetch('http://localhost:8000/api/auth/login', {
@@ -45,10 +43,10 @@ const Login = () => {
         else if (role === 'student') navigate('/student');
         else navigate('/app');
       } else {
-        setError(data.message || 'Invalid ID or password');
+        toast.error(data.message || 'Invalid ID or password');
       }
     } catch (err) {
-      setError('Connection error. Please make sure backend is running on port 8000');
+      toast.error('Connection error. Please make sure backend is running on port 8000');
     }
     setLoading(false);
   };
@@ -77,10 +75,6 @@ const Login = () => {
               <img src="/logo.png" alt="SmartBDU" className="login-logo-img" />
               <p>Smart Campus for Bahir Dar University</p>
             </div>
-          )}
-
-          {error && (
-            <div className="login-error">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="login-form">

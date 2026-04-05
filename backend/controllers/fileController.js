@@ -1,4 +1,6 @@
 const File = require('../models/File');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -54,6 +56,41 @@ const uploadFile = async (req, res) => {
       category: category || 'other'
     });
 
+    // Find targeted students and send notifications
+    const studentQuery = { role: 'student', department };
+    if (year) studentQuery.year = parseInt(year);
+    if (semester) studentQuery.semester = semester;
+    if (section) {
+      // Match students with specific section OR no section (optional)
+      studentQuery.$or = [
+        { section: section },
+        { section: { $exists: false } },
+        { section: '' },
+        { section: null }
+      ];
+    }
+    
+    const students = await User.find(studentQuery).select('_id');
+    console.log('Found students for notification:', students.length, 'dept:', department, 'year:', year, 'semester:', semester, 'section:', section);
+    
+    if (students.length > 0) {
+      const categoryLabel = category === 'lecture' ? 'Lecture Material' : 
+                           category === 'assignment' ? 'Assignment File' : 
+                           category === 'exam' ? 'Exam Material' : 'Study Material';
+      
+      const notifications = students.map(student => ({
+        userId: student._id,
+        title: `New ${categoryLabel} Uploaded`,
+        message: `${title || req.file.originalname} has been uploaded for ${department} - Year ${year}, Semester ${semester}${section ? ', Section ' + section : ''}`,
+        type: 'material',
+        relatedId: file._id,
+        relatedType: 'File'
+      }));
+      
+      await Notification.insertMany(notifications);
+      console.log('Notifications sent:', notifications.length);
+    }
+
     res.status(201).json({
       success: true,
       file
@@ -71,12 +108,34 @@ const getFiles = async (req, res) => {
     if (department) filter.department = department;
     if (category)   filter.category   = category;
     if (year)       filter.year       = parseInt(year);
-    if (semester)   filter.semester   = parseInt(semester);
-    if (section)    filter.section    = section;
+    if (semester)   filter.semester   = semester;
 
+    // Handle section filtering - show files that match student's section OR have no section (general)
+    // When student has a section, show files for that section OR files with no section
+    if (section) {
+      filter.$or = [
+        { section: section },
+        { section: { $exists: false } },
+        { section: '' },
+        { section: null }
+      ];
+    } else {
+      // No section specified - show only general materials
+      filter.$or = [
+        { section: { $exists: false } },
+        { section: '' },
+        { section: null }
+      ];
+    }
+
+    console.log('Getting files with params - dept:', department, 'year:', year, 'semester:', semester, 'section:', section);
+    console.log('Filter:', JSON.stringify(filter));
+    
     const files = await File.find(filter)
       .populate('uploadedBy', 'name email')
       .sort({ createdAt: -1 });
+    
+    console.log('Found files:', files.length);
 
     res.json({ success: true, files });
   } catch (error) {

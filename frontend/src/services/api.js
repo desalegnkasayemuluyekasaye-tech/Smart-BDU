@@ -349,3 +349,21 @@ export const postService = {
     return res.json();
   }
 };
+
+export const notificationService = {
+  getAll: async () => {
+    const res = await fetch(`${API_URL}/notifications`, { headers: headers() });
+    return res.json();
+  },
+  getUnreadCount: async () => {
+    const res = await fetch(`${API_URL}/notifications/unread-count`, { headers: headers() });
+    return res.json();
+  },
+  markAsRead: async () => {
+    const res = await fetch(`${API_URL}/notifications/mark-read`, {
+      method: 'PUT',
+      headers: headers()
+    });
+    return res.json();
+  }
+};

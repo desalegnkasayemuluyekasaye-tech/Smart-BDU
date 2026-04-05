@@ -17,9 +17,32 @@ const SIDEBAR_NAV = [
   { id: 'schedule',      icon: '📅', label: 'Schedule' },
 ];
 
-const EMPTY_MAT = { title: '', description: '', department: '', year: '', semester: '', section: '', category: 'lecture', url: '', type: 'pdf', courseCode: '', linkCourseId: '' };
 const EMPTY_ANN = { title: '', content: '', category: 'general', priority: 'normal', targetType: 'section', department: '', batch: '', section: '' };
-const EMPTY_ASSIGN = { title: '', description: '', courseId: '', dueDate: '', dueTime: '', points: '', instructions: '' };
+const EMPTY_ASSIGN = { title: '', description: '', department: '', year: '', semester: '1', section: '', dueDate: '', dueTime: '', points: '', instructions: '', courseCode: '' };
+const EMPTY_MAT = { title: '', description: '', department: '', year: '', semester: '', section: '', courseCode: '', category: 'lecture', linkCourseId: '', url: '' };
+
+const DEPARTMENTS = [
+  'Computer Science',
+  'Software Engineering',
+  'Information Technology',
+  'Information Systems',
+  'Electrical Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Chemical Engineering',
+  'Mathematics',
+  'Physics',
+  'Chemistry',
+  'Biology',
+  'Business Administration',
+  'Accounting',
+  'Economics',
+  'Management',
+  'Law',
+  'Medicine',
+  'Nursing',
+  'Pharmacy'
+];
 
 const LecturerDashboard = () => {
   const { user, logout } = useAuth();
@@ -27,8 +50,6 @@ const LecturerDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   
   const [profileOpen, setProfileOpen] = useState(false);
 
@@ -64,6 +85,7 @@ const LecturerDashboard = () => {
 
   const [assignForm, setAssignForm] = useState(EMPTY_ASSIGN);
   const [assignSubmitLoading, setAssignSubmitLoading] = useState(false);
+  const [assignUploadFile, setAssignUploadFile] = useState(null);
 
   useEffect(() => {
     if (activeTab === 'dashboard') {
@@ -98,7 +120,6 @@ const LecturerDashboard = () => {
           }));
         } catch (e) {
           console.error(e);
-          setError(e.message || 'Failed to load assignments');
         }
         setCoursesLoading(false);
         setAssignmentsLoading(false);
@@ -162,7 +183,6 @@ const LecturerDashboard = () => {
       setCourses(Array.isArray(list) ? list : []);
     } catch (e) {
       console.error(e);
-      setError(e.message || 'Failed to load courses');
     }
     setCoursesLoading(false);
   };
@@ -177,7 +197,6 @@ const LecturerDashboard = () => {
       setSchedules(Array.isArray(list) ? list : []);
     } catch (e) {
       console.error(e);
-      setError(e.message || 'Failed to load schedule');
     }
     setSchedulesLoading(false);
   };
@@ -185,21 +204,8 @@ const LecturerDashboard = () => {
   const fetchMyAssignments = async () => {
     setAssignmentsLoading(true);
     try {
-      const mine = await courseService.getMyCourses().catch(() => []);
-      const courseList = Array.isArray(mine) ? mine : [];
-      const all = await assignmentService.getAll();
-      const arr = Array.isArray(all) ? all : [];
-      const ids = new Set(courseList.map(c => (c._id != null ? String(c._id) : '')).filter(Boolean));
-      const codes = new Set(courseList.map(c => (c.code || '').toUpperCase()).filter(Boolean));
-      setAssignments(arr.filter(a => {
-        const raw = a.course;
-        const cid = raw && typeof raw === 'object' && raw._id != null
-          ? String(raw._id)
-          : (raw != null ? String(raw) : '');
-        if (cid && ids.has(cid)) return true;
-        const code = (a.courseCode || '').toUpperCase();
-        return code && codes.has(code);
-      }));
+      const assignments = await assignmentService.getMyCreated();
+      setAssignments(Array.isArray(assignments) ? assignments : []);
     } catch (e) {
       console.error(e);
     }
@@ -229,13 +235,12 @@ const LecturerDashboard = () => {
       setSubmissions(submittedAssignments);
     } catch (e) {
       console.error(e);
-      setError(e.message || 'Failed to load submissions');
     }
     setSubmissionsLoading(false);
   };
 
   const handleLogout = () => { logout(); navigate('/login'); };
-  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setMessage(''); setError(''); };
+  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); };
 
   const handleMaterialUpload = async (e) => {
     e.preventDefault();
@@ -243,18 +248,18 @@ const LecturerDashboard = () => {
 
     if (urlOnly) {
       if (!matForm.title?.trim() || !matForm.linkCourseId) {
-        setError('Title and a course are required to add a link');
+        toast.error('Title and a course are required to add a link');
         return;
       }
     } else {
       if (!matForm.title || !matForm.department || !matForm.year || !matForm.semester) {
-        setError('Title, Department, Year, and Semester are required');
+        toast.error('Title, Department, Year, and Semester are required');
         return;
       }
-      if (!uploadFile && !matForm.url) { setError('Attach a file or provide a URL link'); return; }
+      if (!uploadFile && !matForm.url) { toast.error('Attach a file or provide a URL link'); return; }
     }
 
-    setUploading(true); setError(''); setMessage('');
+    setUploading(true);
     try {
       if (uploadFile) {
         const fd = new FormData();
@@ -277,54 +282,69 @@ const LecturerDashboard = () => {
             });
             msg += ' — linked to course materials.';
           }
-          setMessage(msg);
+          toast.success(msg);
           setUploadFile(null); setMatForm(EMPTY_MAT);
           fetchFiles();
           if (linkCourseId) fetchCourses();
-        } else { setError(res.message || 'Upload failed'); }
+        } else { toast.error(res.message || 'Upload failed'); }
       } else if (urlOnly) {
         await courseService.addMaterial(matForm.linkCourseId, {
           title: matForm.title.trim(),
           url: matForm.url.trim(),
           type: 'link',
         });
-        setMessage('Link added to course materials.');
+        toast.success('Link added to course materials.');
         setMatForm(EMPTY_MAT);
         fetchCourses();
       }
-    } catch (err) { setError(err.message || 'Failed to upload'); }
+    } catch (err) { toast.error(err.message || 'Failed to upload'); }
     setUploading(false);
   };
 
   const handleAnnouncementSubmit = async (e) => {
-    e.preventDefault(); setAnnouncementLoading(true); setError(''); setMessage('');
+    e.preventDefault(); setAnnouncementLoading(true);
     try {
       await announcementService.createAnnouncement({ ...annForm, department: annForm.department || user?.department });
-      setMessage('Announcement posted successfully!');
+      toast.success('Announcement posted successfully!');
       setAnnForm(EMPTY_ANN);
       fetchAnnouncements();
-    } catch (err) { setError(err.message || 'Failed to post announcement'); }
+    } catch (err) { toast.error(err.message || 'Failed to post announcement'); }
     setAnnouncementLoading(false);
   };
 
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm('Delete this announcement?')) return;
-    try { await announcementService.deleteAnnouncement(id); setMessage('Announcement deleted'); fetchAnnouncements(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await announcementService.deleteAnnouncement(id); toast.success('Announcement deleted'); fetchAnnouncements(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleAssignmentSubmit = async (e) => {
     e.preventDefault();
-    if (!assignForm.title?.trim() || !assignForm.courseId || !assignForm.dueDate) {
-      setError('Title, course, and due date are required');
+    if (!assignForm.title?.trim() || !assignForm.department || !assignForm.year || !assignForm.semester || !assignForm.dueDate) {
+      toast.error('Title, department, year, semester, and due date are required');
       return;
     }
-    const c = courses.find(x => String(x._id) === String(assignForm.courseId));
-    if (!c) {
-      setError('Select a valid course');
-      return;
-    }
-    setAssignSubmitLoading(true); setError(''); setMessage('');
+    setAssignSubmitLoading(true);
     try {
+      let fileId = null;
+      
+      if (assignUploadFile) {
+        const fd = new FormData();
+        fd.append('file', assignUploadFile);
+        fd.append('title', assignForm.title.trim() + ' - Attachment');
+        fd.append('description', 'Assignment attachment');
+        fd.append('courseCode', assignForm.courseCode || 'ASSIGNMENT');
+        fd.append('department', assignForm.department);
+        fd.append('year', assignForm.year);
+        fd.append('semester', assignForm.semester);
+        fd.append('section', assignForm.section || '');
+        fd.append('category', 'assignment');
+        
+        const uploadRes = await fileService.upload(fd);
+        if (uploadRes.success && uploadRes.file) {
+          fileId = uploadRes.file._id;
+        }
+      }
+      
       await assignmentService.create({
         title: assignForm.title.trim(),
         description: assignForm.description || undefined,
@@ -338,12 +358,15 @@ const LecturerDashboard = () => {
         dueTime: assignForm.dueTime || undefined,
         points: assignForm.points ? parseInt(assignForm.points, 10) : undefined,
         instructions: assignForm.instructions || undefined,
+        courseCode: assignForm.courseCode || undefined,
+        attachments: fileId ? [fileId] : undefined,
       });
-      setMessage('Assignment created.');
+      toast.success('Assignment created and sent to targeted students.');
       setAssignForm(EMPTY_ASSIGN);
+      setAssignUploadFile(null);
       fetchMyAssignments();
     } catch (err) {
-      setError(err.message || 'Failed to create assignment');
+      toast.error(err.message || 'Failed to create assignment');
     }
     setAssignSubmitLoading(false);
   };
@@ -352,20 +375,20 @@ const LecturerDashboard = () => {
     if (!window.confirm('Delete this assignment?')) return;
     try {
       await assignmentService.delete(id);
-      setMessage('Assignment deleted');
+      toast.success('Assignment deleted');
       fetchMyAssignments();
     } catch (err) {
-      setError(err.message || 'Failed to delete');
+      toast.error(err.message || 'Failed to delete');
     }
   };
 
   const handleReviewSubmission = async (id, accepted, feedback = '') => {
     try {
       await assignmentService.review(id, { accepted, feedback });
-      setMessage(`Submission ${accepted ? 'accepted' : 'rejected'}`);
+      toast.success(`Submission ${accepted ? 'accepted' : 'rejected'}`);
       fetchSubmissions();
     } catch (err) {
-      setError(err.message || 'Failed to review submission');
+      toast.error(err.message || 'Failed to review submission');
     }
   };
 
@@ -392,6 +415,9 @@ const LecturerDashboard = () => {
           <div className="admin-header-left">
             <button className="admin-menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
               <span /><span /><span />
+            </button>
+            <button type="button" className="home-btn" onClick={() => navigate('/')} title="Back to Home" aria-label="Back to Home">
+              ← Home
             </button>
             <span className="admin-header-brand"><img src="/logo.png" alt="SmartBDU" className="admin-header-logo-img" /></span>
           </div>
@@ -425,8 +451,6 @@ const LecturerDashboard = () => {
         </header>
 
         <div className="admin-content">
-          {message && <div className="success-message">{message}</div>}
-          {error && <div className="error-message">{error}</div>}
 
           {/* DASHBOARD */}
           {activeTab === 'dashboard' && (
@@ -591,23 +615,43 @@ const LecturerDashboard = () => {
               <div className="admin-forms single-form">
                 <div className="form-section">
                   <h2>Create assignment</h2>
-                  <p style={{ fontSize: 13, color: '#666', marginBottom: 20 }}>Tie work to one of your courses. Students with matching courses can view deadlines on their dashboard.</p>
+                  <p style={{ fontSize: 13, color: '#666', marginBottom: 20 }}>Target assignments to specific students by department, year, semester, and section. All matching students will receive this assignment.</p>
                   <form onSubmit={handleAssignmentSubmit}>
-                    <div className="form-group">
-                      <label>Course *</label>
-                      <select
-                        value={assignForm.courseId}
-                        onChange={e => setAssignForm({ ...assignForm, courseId: e.target.value })}
-                        required
-                        disabled={!courses.length}
-                      >
-                        <option value="">{courses.length ? 'Select course' : 'No courses — contact admin'}</option>
-                        {courses.map(c => (
-                          <option key={c._id} value={c._id}>{c.code} — {c.name}</option>
-                        ))}
-                      </select>
+                    <div className="course-header-row">
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select value={assignForm.department} onChange={e => setAssignForm({ ...assignForm, department: e.target.value })} required>
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Year/Batch *</label>
+                        <select value={assignForm.year} onChange={e => setAssignForm({ ...assignForm, year: e.target.value })} required>
+                          <option value="">Select Year</option>
+                          {[1,2,3,4,5,6].map(year => (
+                            <option key={year} value={year}>Year {year}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="course-header-row">
+                      <div className="form-group">
+                        <label>Semester *</label>
+                        <select value={assignForm.semester} onChange={e => setAssignForm({ ...assignForm, semester: e.target.value })} required>
+                          <option value="1">Semester 1</option>
+                          <option value="2">Semester 2</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Section (Optional)</label>
+                        <input type="text" value={assignForm.section} onChange={e => setAssignForm({ ...assignForm, section: e.target.value })} placeholder="e.g. A, B, C" />
+                      </div>
                     </div>
                     <div className="form-group"><label>Title *</label><input type="text" value={assignForm.title} onChange={e => setAssignForm({ ...assignForm, title: e.target.value })} required /></div>
+                    <div className="form-group"><label>Course Code (optional)</label><input type="text" value={assignForm.courseCode} onChange={e => setAssignForm({ ...assignForm, courseCode: e.target.value })} placeholder="e.g. CSE301" /></div>
                     <div className="form-group"><label>Description</label><textarea value={assignForm.description} onChange={e => setAssignForm({ ...assignForm, description: e.target.value })} rows={3} /></div>
                     <div className="course-header-row">
                       <div className="form-group"><label>Due date *</label><input type="date" value={assignForm.dueDate} onChange={e => setAssignForm({ ...assignForm, dueDate: e.target.value })} required /></div>
@@ -615,7 +659,12 @@ const LecturerDashboard = () => {
                     </div>
                     <div className="form-group"><label>Points</label><input type="number" min={0} value={assignForm.points} onChange={e => setAssignForm({ ...assignForm, points: e.target.value })} placeholder="e.g. 10" /></div>
                     <div className="form-group"><label>Instructions</label><textarea value={assignForm.instructions} onChange={e => setAssignForm({ ...assignForm, instructions: e.target.value })} rows={2} /></div>
-                    <button type="submit" className="submit-btn" disabled={assignSubmitLoading || coursesLoading || !courses.length}>{assignSubmitLoading ? 'Creating...' : 'Create assignment'}</button>
+                    <div className="form-group">
+                      <label>Attach File (optional)</label>
+                      <input type="file" onChange={e => setAssignUploadFile(e.target.files[0] || null)} accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.txt" />
+                      {assignUploadFile && <div style={{fontSize:12,color:'#1565c0',marginTop:4,fontWeight:600}}>📎 {assignUploadFile.name}</div>}
+                    </div>
+                    <button type="submit" className="submit-btn" disabled={assignSubmitLoading}>{assignSubmitLoading ? 'Creating...' : 'Create assignment'}</button>
                   </form>
                 </div>
               </div>
@@ -626,14 +675,19 @@ const LecturerDashboard = () => {
                 </div>
                 {assignmentsLoading || coursesLoading ? <div className="loading">Loading...</div> : (
                   <div className="data-table"><table>
-                    <thead><tr><th>Title</th><th>Course</th><th>Due</th><th>Points</th><th>Status sample</th><th>Action</th></tr></thead>
+                    <thead><tr><th>Title</th><th>Target</th><th>Due</th><th>Points</th><th>Submissions</th><th>Action</th></tr></thead>
                     <tbody>
                       {assignments.length === 0 ? (
-                        <tr><td colSpan={6} style={{ textAlign: 'center', color: '#999', padding: 20 }}>No assignments for your courses yet</td></tr>
+                        <tr><td colSpan={6} style={{ textAlign: 'center', color: '#999', padding: 20 }}>No assignments created yet</td></tr>
                       ) : assignments.map(a => (
                         <tr key={a._id}>
                           <td><strong>{a.title}</strong></td>
-                          <td>{a.courseCode || '—'}<br /><small style={{ color: '#888' }}>{a.courseName || ''}</small></td>
+                          <td>
+                            {a.department}<br />
+                            <small style={{ color: '#888' }}>
+                              Year {a.year}, Sem {a.semester}{a.section ? `, Sec ${a.section}` : ''}
+                            </small>
+                          </td>
                           <td>{a.dueDate ? new Date(a.dueDate).toLocaleString() : '—'}</td>
                           <td>{a.points != null ? a.points : '—'}</td>
                           <td><span className={`badge tag-${a.status || 'pending'}`}>{(a.status || 'pending').replace(/_/g, ' ')}</span></td>

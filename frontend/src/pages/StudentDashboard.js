@@ -1,14 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { announcementService, scheduleService, assignmentService, courseService, fileService } from '../services/api';
+import { announcementService, scheduleService, assignmentService, courseService, fileService, notificationService } from '../services/api';
 import FloatingAI from '../components/FloatingAI';
 import './Admin.css';
 import './StudentDashboard.css';
 
+const CountdownTimer = ({ dueDate, dueTime }) => {
+  const [timeLeft, setTimeLeft] = useState('');
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      let due = new Date(dueDate);
+      
+      if (dueTime) {
+        const [hours, minutes] = dueTime.split(':').map(Number);
+        due.setHours(hours, minutes, 0, 0);
+      }
+
+      const difference = due - now;
+
+      if (difference <= 0) {
+        setTimeLeft('EXPIRED');
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        setTimeLeft(`${days}d ${hours}h ${minutes}m`);
+      } else if (hours > 0) {
+        setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      } else if (minutes > 0) {
+        setTimeLeft(`${minutes}m ${seconds}s`);
+      } else {
+        setTimeLeft(`${seconds}s`);
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(timer);
+  }, [dueDate, dueTime]);
+
+  return (
+    <div className={`countdown-timer ${timeLeft === 'EXPIRED' ? 'expired' : ''}`}>
+      {timeLeft}
+    </div>
+  );
+};
+
 const SIDEBAR_NAV = [
   { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
   { id: 'courses', icon: '📚', label: 'My Courses' },
+  { id: 'materials', icon: '📖', label: 'Materials' },
   { id: 'schedule', icon: '📅', label: 'Schedule' },
   { id: 'assignments', icon: '📝', label: 'Assignments' },
   { id: 'announcements', icon: '📢', label: 'Announcements' },
@@ -187,19 +237,39 @@ const StudentDashboard = () => {
     }
   };
 
+  const fetchStudentMaterials = async () => {
+    setMaterialsLoading(true);
+    try {
+      const params = {
+        department: user?.department,
+        year: user?.year,
+        semester: user?.semester || '1',
+        section: user?.section || ''
+      };
+      console.log('Fetching materials with params:', params);
+      const data = await fileService.getAll(params);
+      console.log('Materials response:', data);
+      setStudentMaterials(data.files || data || []);
+    } catch (e) {
+      console.error('Error fetching materials:', e);
+      setStudentMaterials([]);
+    }
+    setMaterialsLoading(false);
+  };
+
   const fetchNotifications = async () => {
     try {
-      const data = await announcementService.getNotifications();
-      setNotifCount(data.unreadCount || 0);
-      setNotifList(data.notifications || []);
+      const data = await notificationService.getAll();
+      const unread = data.filter(n => !n.isRead);
+      setNotifCount(unread.length);
+      setNotifList(data.slice(0, 5));
     } catch (e) { /* silent */ }
   };
 
   const handleOpenNotif = async () => {
     setNotifOpen((v) => !v);
     if (!notifOpen && notifList.length > 0) {
-      const ids = notifList.map((n) => n._id);
-      await announcementService.markAsRead(ids);
+      await notificationService.markAsRead();
       setNotifCount(0);
     }
   };
@@ -258,6 +328,12 @@ const StudentDashboard = () => {
   const sidebarActive = (id) =>
     id === 'courses' ? activeTab === 'courses' || activeTab === 'courseDetail' : activeTab === id;
 
+  useEffect(() => {
+    if (activeTab === 'materials') {
+      fetchStudentMaterials();
+    }
+  }, [activeTab, user]);
+
   const renderDashboard = () => (
     <div className="tab-content">
       <div className="admin-quick-actions" style={{ marginBottom: 24 }}>
@@ -266,6 +342,7 @@ const StudentDashboard = () => {
           <button type="button" className="admin-quick-btn" onClick={() => switchTab('courses')}>📚 My courses</button>
           <button type="button" className="admin-quick-btn" onClick={() => switchTab('schedule')}>📅 Schedule</button>
           <button type="button" className="admin-quick-btn" onClick={() => switchTab('assignments')}>📝 Assignments</button>
+          <button type="button" className="admin-quick-btn" onClick={() => switchTab('materials')}>📖 Materials</button>
           <button type="button" className="admin-quick-btn" onClick={() => switchTab('announcements')}>📢 Announcements</button>
         </div>
       </div>
@@ -337,11 +414,12 @@ const StudentDashboard = () => {
               <div key={idx} className={`assignment-card ${getUrgencyClass(assign.dueDate)}`}>
                 <div className="assignment-info">
                   <div className="assignment-title">{assign.title}</div>
-                  <div className="assignment-course">{assign.courseName} ({assign.courseCode})</div>
+                  <div className="assignment-course">{assign.department} - Year {assign.year}, Sem {assign.semester}{assign.section ? `, Sec ${assign.section}` : ''}</div>
                 </div>
                 <div className="assignment-due">
                   <div className={`due-badge ${getUrgencyClass(assign.dueDate)}`}>{getDaysUntil(assign.dueDate)}</div>
                   <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
+                  <CountdownTimer dueDate={assign.dueDate} dueTime={assign.dueTime} />
                 </div>
               </div>
             ))}
@@ -428,6 +506,49 @@ const StudentDashboard = () => {
     );
   };
 
+  const renderMaterials = () => (
+    <div className="tab-content">
+      <div className="data-section">
+        <div className="section-header">
+          <h2>📖 My Materials</h2>
+          <button type="button" className="refresh-btn" onClick={fetchStudentMaterials} disabled={materialsLoading}>Refresh</button>
+        </div>
+        <p style={{ color: '#666', marginBottom: 16 }}>
+          Materials for: <strong>{user?.department}</strong> · Year {user?.year} · Semester {user?.semester || '1'}
+          {user?.section ? ` · Section ${user.section}` : ''}
+        </p>
+        {materialsLoading ? (
+          <div className="loading">Loading...</div>
+        ) : studentMaterials.length > 0 ? (
+          <div className="assignments-list">
+            {studentMaterials.map((file, idx) => (
+              <div key={idx} className="assignment-card normal">
+                <div className="assignment-info">
+                  <div className="assignment-title">{file.title}</div>
+                  <div className="assignment-course">
+                    {file.category === 'lecture' && '📚 Lecture Note'}
+                    {file.category === 'assignment' && '📝 Assignment'}
+                    {file.category === 'exam' && '📋 Exam'}
+                    {file.category === 'notes' && '📓 Notes'}
+                    {file.category === 'other' && '📄 Other'}
+                    {file.courseCode ? ` · ${file.courseCode}` : ''}
+                  </div>
+                  {file.description && <div className="assignment-desc">{file.description}</div>}
+                </div>
+                <div className="assignment-due">
+                  <button type="button" className="refresh-btn" style={{ background: '#1565c0' }} onClick={() => fileService.download(file._id)}>⬇ Download</button>
+                  <div className="due-date">{formatDate(file.createdAt)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-state">No materials uploaded yet</div>
+        )}
+      </div>
+    </div>
+  );
+
   const renderAssignments = () => (
     <div className="tab-content">
       {submitMsg && <div className="success-message" style={{ marginBottom: 12 }}>{submitMsg}</div>}
@@ -441,13 +562,21 @@ const StudentDashboard = () => {
               <div key={idx} className={`assignment-card ${getUrgencyClass(assign.dueDate)}`}>
                 <div className="assignment-info">
                   <div className="assignment-title">{assign.title}</div>
-                  <div className="assignment-course">{assign.courseName} ({assign.courseCode})</div>
+                  <div className="assignment-course">{assign.department} - Year {assign.year}, Sem {assign.semester}{assign.section ? `, Sec ${assign.section}` : ''}</div>
+                  {assign.courseCode && <div className="assignment-course">Course: {assign.courseCode}</div>}
                   <div className="assignment-desc">{assign.description}</div>
                   {assign.points != null && <div className="assignment-desc">Points: {assign.points}</div>}
+                  {assign.attachments && assign.attachments.length > 0 && (
+                    <div style={{ marginTop: 8 }}>
+                      <span style={{ fontWeight: 600, color: '#1565c0' }}>📎 Attachment: </span>
+                      <button type="button" className="refresh-btn" style={{ background: '#1565c0', marginLeft: 4 }} onClick={() => fileService.download(assign.attachments[0])}>⬇ Download</button>
+                    </div>
+                  )}
                 </div>
                 <div className="assignment-due">
                   <div className={`due-badge ${getUrgencyClass(assign.dueDate)}`}>{getDaysUntil(assign.dueDate)}</div>
                   <div className="due-date">Due: {formatDate(assign.dueDate)}</div>
+                  <CountdownTimer dueDate={assign.dueDate} dueTime={assign.dueTime} />
                   <div className={`status-badge ${assign.status}`}>{assign.status}</div>
                   {assign.lecturerAccepted === true && <div className="status-badge accepted">Accepted by Lecturer</div>}
                   {assign.lecturerAccepted === false && <div className="status-badge rejected">Rejected by Lecturer</div>}
@@ -769,6 +898,9 @@ const StudentDashboard = () => {
             <button type="button" className="admin-menu-toggle" onClick={() => setMenuOpen(!menuOpen)} aria-label="Open menu">
               <span /><span /><span />
             </button>
+            <button type="button" className="home-btn" onClick={() => navigate('/')} title="Back to Home" aria-label="Back to Home">
+              ← Home
+            </button>
             <span className="admin-header-brand">
               <img src="/logo.png" alt="SmartBDU" className="admin-header-logo-img" />
             </span>
@@ -847,6 +979,7 @@ const StudentDashboard = () => {
         <div className="admin-content">
           {activeTab === 'dashboard' && renderDashboard()}
           {activeTab === 'schedule' && renderSchedule()}
+          {activeTab === 'materials' && renderMaterials()}
           {activeTab === 'assignments' && renderAssignments()}
           {activeTab === 'courses' && renderCourses()}
           {activeTab === 'courseDetail' && renderCourseDetail()}
