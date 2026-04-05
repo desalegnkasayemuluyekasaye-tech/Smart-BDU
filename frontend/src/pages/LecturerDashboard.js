@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { courseService, fileService, announcementService, scheduleService, assignmentService, API_URL } from '../services/api';
-import { toast } from 'react-toastify';
+import { DEPARTMENTS } from '../constants';
 import FloatingAI from '../components/FloatingAI';
 import './Admin.css';
 
@@ -12,6 +12,7 @@ const SIDEBAR_NAV = [
   { id: 'materials',     icon: '📤', label: 'Upload Materials' },
   { id: 'assignments',   icon: '📝', label: 'Assignments' },
   { id: 'submissions',   icon: '📥', label: 'Review Submissions' },
+  { id: 'enrollments',   icon: '👥', label: 'Enrollments' },
   { id: 'announcements', icon: '📢', label: 'Announcements' },
   { id: 'schedule',      icon: '📅', label: 'Schedule' },
 ];
@@ -71,6 +72,9 @@ const LecturerDashboard = () => {
   const [submissions, setSubmissions] = useState([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
 
+  const [pendingStudents, setPendingStudents] = useState([]);
+  const [pendingStudentsLoading, setPendingStudentsLoading] = useState(false);
+
   // Forms
   const [matForm, setMatForm] = useState(EMPTY_MAT);
   const [uploadFile, setUploadFile] = useState(null);
@@ -125,7 +129,52 @@ const LecturerDashboard = () => {
     else if (activeTab === 'submissions') {
       fetchSubmissions();
     }
+    else if (activeTab === 'enrollments') {
+      fetchEnrollments();
+    }
+    setMessage(''); setError('');
   }, [activeTab]);
+
+  const fetchEnrollments = async () => {
+    setPendingStudentsLoading(true);
+    try {
+      const myCourses = await courseService.getMyCourses();
+      const list = Array.isArray(myCourses) ? myCourses : [];
+      
+      const allPending = [];
+      for (const course of list) {
+        if (course.enrolledStudents) {
+          const pending = course.enrolledStudents
+            .filter(s => s.status === 'pending')
+            .map(s => ({
+              ...s,
+              courseId: course._id,
+              courseName: course.name,
+              courseCode: course.code
+            }));
+          allPending.push(...pending);
+        }
+      }
+      
+      // Since studentId is an object (populated), we'll try to get more details if needed
+      // but for now we'll assume the model has the details or we fetch them
+      setPendingStudents(allPending);
+    } catch (e) {
+      console.error(e);
+      setError('Failed to load enrollments');
+    }
+    setPendingStudentsLoading(false);
+  };
+
+  const handleAcceptStudent = async (courseId, studentId) => {
+    try {
+      await courseService.acceptStudent(courseId, studentId);
+      setMessage('Student accepted into course');
+      fetchEnrollments();
+    } catch (err) {
+      setError(err.message || 'Failed to accept student');
+    }
+  };
 
   const fetchCourses = async () => {
     setCoursesLoading(true);
@@ -299,10 +348,12 @@ const LecturerDashboard = () => {
       await assignmentService.create({
         title: assignForm.title.trim(),
         description: assignForm.description || undefined,
-        department: assignForm.department,
-        year: parseInt(assignForm.year),
-        semester: assignForm.semester,
-        section: assignForm.section || undefined,
+        course: assignForm.courseId,
+        courseName: c.name,
+        courseCode: c.code,
+        department: c.department,
+        year: c.year,
+        section: c.section,
         dueDate: new Date(assignForm.dueDate),
         dueTime: assignForm.dueTime || undefined,
         points: assignForm.points ? parseInt(assignForm.points, 10) : undefined,
@@ -411,6 +462,7 @@ const LecturerDashboard = () => {
                   <button className="admin-quick-btn" onClick={() => switchTab('materials')}>📤 Upload File</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('assignments')}>📝 Assignments</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('submissions')}>📥 Review Submissions</button>
+                  <button className="admin-quick-btn" onClick={() => switchTab('enrollments')}>👥 View Enrollments</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('announcements')}>📢 Post Announcement</button>
                   <button className="admin-quick-btn" onClick={() => switchTab('schedule')}>📅 View Schedule</button>
                 </div>
@@ -420,8 +472,9 @@ const LecturerDashboard = () => {
                   { icon: '📚', val: courses.length, label: 'Assigned Courses', tab: 'courses' },
                   { icon: '📁', val: myFiles.length, label: 'Materials Uploaded', tab: 'materials' },
                   { icon: '📝', val: assignments.length, label: 'Assignments', tab: 'assignments' },
-                  { icon: '�', val: submissions.length, label: 'Pending Reviews', tab: 'submissions' },
-                  { icon: '�📢', val: announcements.length, label: 'Announcements', tab: 'announcements' },
+                  { icon: '📥', val: submissions.length, label: 'Pending Reviews', tab: 'submissions' },
+                  { icon: '👥', val: pendingStudents.length, label: 'Enrollments', tab: 'enrollments' },
+                  { icon: '📢', val: announcements.length, label: 'Announcements', tab: 'announcements' },
                   { icon: '📅', val: schedules.length, label: 'Scheduled Classes', tab: 'schedule' },
                 ].map((s, i) => (
                   <div key={i} className="admin-stat-card" onClick={() => switchTab(s.tab)}>
@@ -471,12 +524,16 @@ const LecturerDashboard = () => {
                     <div className="form-group"><label>Description</label><textarea value={matForm.description} onChange={e => setMatForm({...matForm,description:e.target.value})} rows={2} /></div>
                     
                     <div className="course-header-row" style={{marginTop:16}}>
-                      <div className="form-group"><label>Department *</label>
-                        <select value={matForm.department} onChange={e => setMatForm({...matForm,department:e.target.value})} required>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select 
+                          className="form-control" 
+                          value={matForm.department} 
+                          onChange={e => setMatForm({...matForm,department:e.target.value})} 
+                          required
+                        >
                           <option value="">Select Department</option>
-                          {DEPARTMENTS.map(dept => (
-                            <option key={dept} value={dept}>{dept}</option>
-                          ))}
+                          {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
                         </select>
                       </div>
                       <div className="form-group"><label>Year / Batch *</label><input type="number" value={matForm.year} onChange={e => setMatForm({...matForm,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
@@ -670,9 +727,18 @@ const LecturerDashboard = () => {
                           </td>
                           <td>{s.submittedAt ? new Date(s.submittedAt).toLocaleString() : '—'}</td>
                           <td>
-                            <span className={`badge tag-${s.status || 'pending'}`}>{(s.status || 'pending').replace(/_/g, ' ')}</span>
-                            {s.lecturerAccepted === true && <span className="badge tag-accepted">Accepted</span>}
-                            {s.lecturerAccepted === false && <span className="badge tag-rejected">Rejected</span>}
+                            <div style={{ marginBottom: 4 }}>
+                              <span className={`badge tag-${s.status || 'pending'}`}>{(s.status || 'pending').replace(/_/g, ' ')}</span>
+                            </div>
+                            {s.submittedFile && (
+                              <button 
+                                className="lec-btn" 
+                                onClick={() => fileService.download(s.submittedFile._id)}
+                                style={{ background: '#e3f2fd', color: '#1565c0', fontSize: 11, padding: '4px 8px' }}
+                              >
+                                📄 View File
+                              </button>
+                            )}
                           </td>
                           <td>
                             {s.lecturerAccepted === null ? (
@@ -709,6 +775,50 @@ const LecturerDashboard = () => {
             </div>
           )}
 
+          {/* ENROLLMENTS */}
+          {activeTab === 'enrollments' && (
+            <div className="tab-content">
+              <div className="data-section">
+                <div className="section-header">
+                  <h2>👥 Pending Course Enrollments ({pendingStudents.length})</h2>
+                  <button type="button" onClick={fetchEnrollments} className="refresh-btn" disabled={pendingStudentsLoading}>Refresh</button>
+                </div>
+                {pendingStudentsLoading ? <div className="loading">Loading...</div> : (
+                  <div className="data-table"><table>
+                    <thead><tr><th>Student</th><th>Course</th><th>Date Requested</th><th>Action</th></tr></thead>
+                    <tbody>
+                      {pendingStudents.length === 0 ? (
+                        <tr><td colSpan={4} style={{ textAlign: 'center', color: '#999', padding: 20 }}>No pending enrollments</td></tr>
+                      ) : pendingStudents.map((s, idx) => (
+                        <tr key={`${s.courseId}-${idx}`}>
+                          <td>
+                            <strong>{s.studentId?.name || 'Unknown Student'}</strong><br />
+                            <small style={{ color: '#888' }}>ID: {s.studentId?.studentId || 'N/A'}</small>
+                          </td>
+                          <td>
+                            {s.courseName}<br />
+                            <small style={{ color: '#888' }}>{s.courseCode}</small>
+                          </td>
+                          <td>{new Date(s.enrolledAt).toLocaleDateString()}</td>
+                          <td>
+                            <button 
+                              type="button" 
+                              className="lec-btn" 
+                              style={{ background: '#4caf50', color: 'white' }}
+                              onClick={() => handleAcceptStudent(s.courseId, s.studentId?._id)}
+                            >
+                              ✓ Accept Student
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table></div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* ANNOUNCEMENTS */}
           {activeTab === 'announcements' && (
             <div className="tab-content">
@@ -730,7 +840,18 @@ const LecturerDashboard = () => {
                     </div>
 
                     {(annForm.targetType==='department'||annForm.targetType==='batch'||annForm.targetType==='section') && (
-                      <div className="form-group"><label>Department *</label><input type="text" value={annForm.department} onChange={e => setAnnForm({...annForm,department:e.target.value})} placeholder={user?.department || "e.g. Computer Science"} required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select 
+                          className="form-control" 
+                          value={annForm.department} 
+                          onChange={e => setAnnForm({...annForm,department:e.target.value})} 
+                          required
+                        >
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                        </select>
+                      </div>
                     )}
                     {(annForm.targetType==='batch'||annForm.targetType==='section') && (
                       <div className="form-group"><label>Batch / Year *</label><input type="text" value={annForm.batch} onChange={e => setAnnForm({...annForm,batch:e.target.value})} placeholder="e.g. 3" required /></div>

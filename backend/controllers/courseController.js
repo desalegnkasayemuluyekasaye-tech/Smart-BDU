@@ -22,14 +22,23 @@ const getMyCourses = async (req, res) => {
     const uid = req.user._id;
     const name = (req.user.name || '').trim();
     const first = name.split(/\s+/)[0] || '';
-    const or = [{ instructorId: uid }];
-    if (name) {
-      or.push({ instructor: new RegExp(`^${escapeRegex(name)}$`, 'i') });
+
+    let courses;
+    if (req.user.role === 'lecturer') {
+      const or = [{ instructorId: uid }];
+      if (name) {
+        or.push({ instructor: new RegExp(`^${escapeRegex(name)}$`, 'i') });
+      }
+      if (first.length >= 2) {
+        or.push({ instructor: new RegExp(escapeRegex(first), 'i') });
+      }
+      courses = await Course.find({ $or: or }).populate('enrolledStudents.studentId', 'name studentId email').sort({ code: 1 });
+    } else {
+      // For students, find courses where they are enrolled (pending or accepted)
+      courses = await Course.find({
+        'enrolledStudents.studentId': uid
+      }).sort({ code: 1 });
     }
-    if (first.length >= 2) {
-      or.push({ instructor: new RegExp(escapeRegex(first), 'i') });
-    }
-    const courses = await Course.find({ $or: or }).sort({ code: 1 });
     res.json(courses);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -133,6 +142,46 @@ const updateCourse = async (req, res) => {
   }
 };
 
+const enrollCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    
+    const isEnrolled = course.enrolledStudents.some(s => s.studentId.toString() === req.user._id.toString());
+    if (isEnrolled) return res.status(400).json({ message: 'Already enrolled' });
+
+    course.enrolledStudents.push({
+      studentId: req.user._id,
+      status: 'pending'
+    });
+    await course.save();
+    res.json({ message: 'Enrollment requested', status: 'pending' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const acceptStudent = async (req, res) => {
+  try {
+    const { studentId } = req.body;
+    const course = await Course.findById(req.params.id);
+    if (!course) return res.status(404).json({ message: 'Course not found' });
+    
+    if (!canManageCourse(course, req.user)) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    const student = course.enrolledStudents.find(s => s.studentId.toString() === studentId);
+    if (!student) return res.status(404).json({ message: 'Student not found in enrollment' });
+
+    student.status = 'accepted';
+    await course.save();
+    res.json({ message: 'Student enrollment accepted', status: 'accepted' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getCourses,
   getMyCourses,
@@ -142,4 +191,6 @@ module.exports = {
   addMaterial,
   deleteCourse,
   updateCourse,
+  enrollCourse,
+  acceptStudent
 };

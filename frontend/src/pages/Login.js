@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { toast } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Login = () => {
   const location = useLocation();
@@ -14,6 +15,15 @@ const Login = () => {
   const [loading, setLoading]   = useState(false);
   const { login }  = useAuth();
   const navigate   = useNavigate();
+
+  const handleForgotPassword = (e) => {
+    e.preventDefault();
+    toast.info("Password reset functionality is coming soon!", {
+      position: "top-center",
+      autoClose: 3000,
+      theme: "light",
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -43,6 +53,14 @@ const Login = () => {
 
   return (
     <div className="login-wrapper">
+      <ToastContainer />
+      <button className="back-to-home" onClick={() => navigate("/")} title="Back to Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+
       <div className="login-outer">
         {campus && (
           <div className="login-campus-banner" style={{ backgroundImage: `url(${campus.image})` }}>
@@ -114,7 +132,7 @@ const Login = () => {
                 </button>
               </div>
               <div className="login-forgot">
-                <Link to="/forgot-password">Forgot Password?</Link>
+                <a href="#" onClick={handleForgotPassword}>Forgot Password?</a>
               </div>
             </div>
 

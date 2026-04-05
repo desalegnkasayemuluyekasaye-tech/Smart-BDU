@@ -4,6 +4,9 @@ const Notification = require('../models/Notification');
 
 const getAssignments = async (req, res) => {
   try {
+
+    const { course, status, dueDate, section, department, year } = req.query;
+
     const { course, status, dueDate, section, department, year, semester, createdBy } = req.query;
     const query = {};
     
@@ -30,6 +33,21 @@ const getAssignments = async (req, res) => {
     
     // Status filtering
     if (status) query.status = status;
+    if (department) query.department = department;
+    if (year) query.year = parseInt(year);
+    if (section) {
+      query.$or = [
+        { section },
+        { section: '' },
+        { section: { $exists: false } }
+      ];
+    }
+
+    const assignments = await Assignment.find(query)
+      .populate('submittedBy', 'name studentId')
+      .populate('submittedFile', 'fileName title')
+      .sort({ dueDate: 1 });
+
     
     console.log('Getting assignments with params - dept:', department, 'year:', year, 'semester:', semester, 'section:', section);
     console.log('Query:', JSON.stringify(query));
@@ -161,11 +179,20 @@ const reviewSubmission = async (req, res) => {
 
 const getUpcomingAssignments = async (req, res) => {
   try {
+    const { section, department, year } = req.query;
     const { section, department, year, semester } = req.query;
     const query = {
       dueDate: { $gte: new Date() },
       status: { $ne: 'submitted' }
     };
+    if (department) query.department = department;
+    if (year) query.year = parseInt(year);
+    if (section) {
+      query.$or = [
+        { section },
+        { section: '' },
+        { section: { $exists: false } }
+
     
     // Add targeting filters
     if (department) query.department = department;

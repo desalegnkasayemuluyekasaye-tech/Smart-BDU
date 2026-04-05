@@ -18,6 +18,11 @@ const courseSchema = new mongoose.Schema({
     type: { type: String, enum: ['pdf', 'link', 'video'] },
     uploadedAt: { type: Date, default: Date.now }
   }],
+  enrolledStudents: [{
+    studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    status: { type: String, enum: ['pending', 'accepted'], default: 'pending' },
+    enrolledAt: { type: Date, default: Date.now }
+  }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Course', courseSchema);
