@@ -3,6 +3,12 @@ const mongoose = require('mongoose');
 const assignmentSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
+  // Targeting criteria instead of specific course
+  department: { type: String, required: true },
+  year: { type: Number, required: true }, // batch/year
+  semester: { type: String, enum: ['1', '2'], required: true },
+  section: { type: String }, // optional section targeting
+  // Legacy course reference (for backward compatibility)
   course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
   courseName: { type: String },
   courseCode: { type: String },
@@ -10,8 +16,7 @@ const assignmentSchema = new mongoose.Schema({
   dueTime: { type: String },
   points: { type: Number },
   instructions: { type: String },
-  section: { type: String },
-  attachments: [{ type: String }],
+  attachments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'File' }],
   accepted: { type: Boolean, default: false },
   submittedFile: { type: mongoose.Schema.Types.ObjectId, ref: 'File' },
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -23,6 +28,7 @@ const assignmentSchema = new mongoose.Schema({
   submittedAt: { type: Date },
   grade: { type: Number },
   feedback: { type: String },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Assignment', assignmentSchema);

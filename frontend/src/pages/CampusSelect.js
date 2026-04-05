@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import campusMain from "../assets/campus-main.jpg";
 import campusZen  from "../assets/campus-zen.jpg";
 import campusTib  from "../assets/campus-tib.jpg";
@@ -18,6 +19,17 @@ const CampusSelect = () => {
   const navigate = useNavigate();
 
   const handleSelect = (campus) => {
+    if (campus.id !== "bit") {
+      toast.info("Coming Soon! This campus will be available shortly.", {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
     navigate("/login", { state: { campus } });
   };
 

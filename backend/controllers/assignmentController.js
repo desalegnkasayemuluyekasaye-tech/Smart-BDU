@@ -1,18 +1,41 @@
 const Assignment = require('../models/Assignment');
+const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 const getAssignments = async (req, res) => {
   try {
-    const { course, status, dueDate, section } = req.query;
+    const { course, status, dueDate, section, department, year, semester, createdBy } = req.query;
     const query = {};
+    
+    // Legacy course-based filtering
     if (course) query.course = course;
+    
+    // New targeting-based filtering
+    if (department) query.department = department;
+    if (year) query.year = parseInt(year);
+    if (semester) query.semester = semester;
+    
+    // Section filtering - show assignments for student's section OR no section (general)
+    if (section) {
+      query.$or = [
+        { section: section },
+        { section: { $exists: false } },
+        { section: '' },
+        { section: null }
+      ];
+    }
+    
+    // Created by current user
+    if (createdBy === 'true') query.createdBy = req.user._id;
+    
+    // Status filtering
     if (status) query.status = status;
-    if (section) query.$or = [
-      { section },
-      { section: '' },
-      { section: { $exists: false } }
-    ];
-
+    
+    console.log('Getting assignments with params - dept:', department, 'year:', year, 'semester:', semester, 'section:', section);
+    console.log('Query:', JSON.stringify(query));
     const assignments = await Assignment.find(query).sort({ dueDate: 1 });
+    console.log('Found assignments:', assignments.length);
+    
     res.json(assignments);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -21,7 +44,7 @@ const getAssignments = async (req, res) => {
 
 const createAssignment = async (req, res) => {
   try {
-    const payload = { ...req.body };
+    const payload = { ...req.body, createdBy: req.user._id };
     if (payload.dueDate) {
       const due = new Date(payload.dueDate);
       if (payload.dueTime) {
@@ -31,6 +54,39 @@ const createAssignment = async (req, res) => {
       payload.dueDate = due;
     }
     const assignment = await Assignment.create(payload);
+
+    // Find targeted students and send notifications
+    const studentQuery = { role: 'student', department: payload.department };
+    if (payload.year) studentQuery.year = payload.year;
+    if (payload.semester) studentQuery.semester = payload.semester;
+    if (payload.section) {
+      // Match students with specific section OR no section (optional)
+      studentQuery.$or = [
+        { section: payload.section },
+        { section: { $exists: false } },
+        { section: '' },
+        { section: null }
+      ];
+    }
+    
+    const students = await User.find(studentQuery).select('_id');
+    console.log('Found students for assignment notification:', students.length, 'dept:', payload.department, 'year:', payload.year, 'sem:', payload.semester, 'section:', payload.section);
+    
+    if (students.length > 0) {
+      const dueDateStr = new Date(payload.dueDate).toLocaleDateString();
+      const notifications = students.map(student => ({
+        userId: student._id,
+        title: `New Assignment: ${payload.title}`,
+        message: `A new assignment "${payload.title}" has been posted for ${payload.department} - Year ${payload.year}, Semester ${payload.semester}. Due Date: ${dueDateStr}`,
+        type: 'assignment',
+        relatedId: assignment._id,
+        relatedType: 'Assignment'
+      }));
+      
+      await Notification.insertMany(notifications);
+      console.log('Assignment notifications sent:', notifications.length);
+    }
+
     res.status(201).json(assignment);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -105,18 +161,29 @@ const reviewSubmission = async (req, res) => {
 
 const getUpcomingAssignments = async (req, res) => {
   try {
-    const { section } = req.query;
+    const { section, department, year, semester } = req.query;
     const query = {
       dueDate: { $gte: new Date() },
       status: { $ne: 'submitted' }
     };
-    if (section) query.$or = [
-      { section },
-      { section: '' },
-      { section: { $exists: false } }
-    ];
+    
+    // Add targeting filters
+    if (department) query.department = department;
+    if (year) query.year = parseInt(year);
+    if (semester) query.semester = semester;
+    if (section) {
+      query.$or = [
+        { section: section },
+        { section: { $exists: false } },
+        { section: '' },
+        { section: null }
+      ];
+    }
 
+    console.log('Getting upcoming assignments with query:', JSON.stringify(query));
     const assignments = await Assignment.find(query).sort({ dueDate: 1 }).limit(5);
+    console.log('Found upcoming assignments:', assignments.length);
+    
     res.json(assignments);
   } catch (error) {
     res.status(500).json({ message: error.message });

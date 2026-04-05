@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminService, courseService, announcementService, scheduleService } from '../services/api';
+import { toast } from 'react-toastify';
 import FloatingAI from '../components/FloatingAI';
 import './Admin.css';
 
@@ -28,14 +29,35 @@ const SIDEBAR_NAV = [
   { id: 'schedule',      icon: '📅', label: 'Schedule' },
 ];
 
+const DEPARTMENTS = [
+  'Computer Science',
+  'Software Engineering',
+  'Information Technology',
+  'Information Systems',
+  'Electrical Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Chemical Engineering',
+  'Mathematics',
+  'Physics',
+  'Chemistry',
+  'Biology',
+  'Business Administration',
+  'Accounting',
+  'Economics',
+  'Management',
+  'Law',
+  'Medicine',
+  'Nursing',
+  'Pharmacy'
+];
+
 const Admin = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('dashboard');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
   const [modal, setModal] = useState(null);
 
   const [studentForm, setStudentForm] = useState(EMPTY_STUDENT);
@@ -76,7 +98,7 @@ const Admin = () => {
     else if (activeTab === 'courses') fetchCourses();
     else if (activeTab === 'announcements') fetchAnnouncements();
     else if (activeTab === 'schedule') fetchSchedules();
-    setMessage(''); setError(''); setCreatedUserPassword(null);
+    setCreatedUserPassword(null);
   }, [activeTab]);
 
   const fetchUsers = async () => { setUsersLoading(true); try { setUsers(await adminService.getUsers()); } catch (e) { console.error(e); } setUsersLoading(false); };
@@ -85,53 +107,53 @@ const Admin = () => {
   const fetchSchedules = async () => { setSchedulesLoading(true); try { setSchedules(await scheduleService.getAll()); } catch (e) { console.error(e); } setSchedulesLoading(false); };
 
   const handleLogout = () => { logout(); navigate('/login'); };
-  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setMessage(''); setError(''); setCreatedUserPassword(null); };
+  const switchTab = (id) => { setActiveTab(id); setMenuOpen(false); setCreatedUserPassword(null); };
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
-    if (!studentForm.name || !studentForm.email || !studentForm.studentId || !studentForm.department || !studentForm.year) { setError('Fill all required fields'); return; }
+    if (!studentForm.name || !studentForm.email || !studentForm.studentId || !studentForm.department || !studentForm.year) { toast.error('Fill all required fields'); return; }
     setStudentLoading(true); setCreatedUserPassword(null);
     try {
       await adminService.createUser({ ...studentForm, role: 'student', year: parseInt(studentForm.year) });
-      setMessage('Student added! Initial password = Student ID');
+      toast.success('Student added! Initial password = Student ID');
       setCreatedUserPassword({ name: studentForm.name, id: studentForm.studentId, password: studentForm.studentId });
-      setStudentForm(EMPTY_STUDENT); setError(''); setModal(null); fetchUsers();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      setStudentForm(EMPTY_STUDENT); setModal(null); fetchUsers();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setStudentLoading(false);
   };
 
   const handleTeacherSubmit = async (e) => {
     e.preventDefault();
-    if (!teacherForm.name || !teacherForm.email || !teacherForm.department || !teacherForm.employeeId) { setError('Fill all required fields'); return; }
+    if (!teacherForm.name || !teacherForm.email || !teacherForm.department || !teacherForm.employeeId) { toast.error('Fill all required fields'); return; }
     setTeacherLoading(true); setCreatedUserPassword(null);
     try {
       const departments = teacherForm.departments ? teacherForm.departments.split(',').map(d => d.trim()).filter(Boolean) : [teacherForm.department];
       const batches = teacherForm.batches ? teacherForm.batches.split(',').map(b => b.trim()).filter(Boolean) : [];
       const sections = teacherForm.sections ? teacherForm.sections.split(',').map(s => s.trim()).filter(Boolean) : [];
       await adminService.createUser({ ...teacherForm, role: 'lecturer', departments, batches, sections });
-      setMessage('Teacher added! Initial password = Employee ID');
+      toast.success('Teacher added! Initial password = Employee ID');
       setCreatedUserPassword({ name: teacherForm.name, id: teacherForm.employeeId, password: teacherForm.employeeId });
-      setTeacherForm(EMPTY_TEACHER); setError(''); setModal(null); fetchUsers();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      setTeacherForm(EMPTY_TEACHER); setModal(null); fetchUsers();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setTeacherLoading(false);
   };
 
   const handleDeleteUser = async (id) => {
     if (!window.confirm('Delete this user?')) return;
-    try { await adminService.deleteUser(id); setMessage('User deleted'); fetchUsers(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await adminService.deleteUser(id); toast.success('User deleted'); fetchUsers(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleCourseSubmit = async (e) => {
     e.preventDefault();
-    if (!courseHeader.department || !courseHeader.year) { setError('Department and Year are required'); return; }
+    if (!courseHeader.department || !courseHeader.year) { toast.error('Department and Year are required'); return; }
     const validRows = courseRows.filter(r => r.name.trim() && r.code.trim());
-    if (validRows.length === 0) { setError('Add at least one course with name and code'); return; }
+    if (validRows.length === 0) { toast.error('Add at least one course with name and code'); return; }
     setCourseLoading(true);
     try {
       await Promise.all(validRows.map(row => courseService.createCourse({ name: row.name, code: row.code, department: courseHeader.department, year: parseInt(courseHeader.year), semester: row.semester ? parseInt(row.semester) : undefined, credits: row.credits ? parseInt(row.credits) : undefined, instructor: row.instructor })));
-      setMessage(`${validRows.length} course(s) created!`);
-      setCourseHeader({ department: '', year: '' }); setCourseRows([{ ...EMPTY_COURSE_ROW }, { ...EMPTY_COURSE_ROW }]); setError(''); fetchCourses();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      toast.success(`${validRows.length} course(s) created!`);
+      setCourseHeader({ department: '', year: '' }); setCourseRows([{ ...EMPTY_COURSE_ROW }, { ...EMPTY_COURSE_ROW }]); fetchCourses();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setCourseLoading(false);
   };
 
@@ -141,36 +163,36 @@ const Admin = () => {
 
   const handleDeleteCourse = async (id) => {
     if (!window.confirm('Delete this course?')) return;
-    try { await courseService.deleteCourse(id); setMessage('Course deleted'); fetchCourses(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await courseService.deleteCourse(id); toast.success('Course deleted'); fetchCourses(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleAnnouncementSubmit = async (e) => {
     e.preventDefault(); setAnnouncementLoading(true);
     try {
       await announcementService.createAnnouncement(announcementForm);
-      setMessage('Announcement posted!');
+      toast.success('Announcement posted!');
       setAnnouncementForm({ title: '', content: '', category: 'general', priority: 'normal', targetType: 'all', department: '', batch: '', section: '' });
-      setError(''); fetchAnnouncements();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      fetchAnnouncements();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setAnnouncementLoading(false);
   };
 
   const handleDeleteAnnouncement = async (id) => {
     if (!window.confirm('Delete?')) return;
-    try { await announcementService.deleteAnnouncement(id); setMessage('Deleted'); fetchAnnouncements(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await announcementService.deleteAnnouncement(id); toast.success('Deleted'); fetchAnnouncements(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleScheduleSubmit = async (e) => {
     e.preventDefault();
-    if (!schedHeader.department || !schedHeader.year) { setError('Department and Year are required'); return; }
+    if (!schedHeader.department || !schedHeader.year) { toast.error('Department and Year are required'); return; }
     const validRows = schedRows.filter(r => r.courseName.trim() && r.day && r.startTime && r.endTime);
-    if (validRows.length === 0) { setError('Add at least one entry with course name, day, and times'); return; }
+    if (validRows.length === 0) { toast.error('Add at least one entry with course name, day, and times'); return; }
     setScheduleLoading(true);
     try {
       const result = await scheduleService.createBatch({ department: schedHeader.department, year: schedHeader.year, semester: schedHeader.semester || undefined, section: schedHeader.section || undefined, entries: validRows });
-      setMessage(`${result.schedules?.length || validRows.length} schedule entries created!`);
-      setSchedHeader({ department: '', year: '', semester: '', section: '' }); setSchedRows([{ ...EMPTY_SCHED_ROW }, { ...EMPTY_SCHED_ROW }]); setError(''); fetchSchedules();
-    } catch (err) { setError(err.message || 'Failed'); setMessage(''); }
+      toast.success(`${result.schedules?.length || validRows.length} schedule entries created!`);
+      setSchedHeader({ department: '', year: '', semester: '', section: '' }); setSchedRows([{ ...EMPTY_SCHED_ROW }, { ...EMPTY_SCHED_ROW }]); fetchSchedules();
+    } catch (err) { toast.error(err.message || 'Failed'); }
     setScheduleLoading(false);
   };
 
@@ -180,7 +202,7 @@ const Admin = () => {
 
   const handleDeleteSchedule = async (id) => {
     if (!window.confirm('Delete?')) return;
-    try { await scheduleService.delete(id); setMessage('Deleted'); fetchSchedules(); } catch (err) { setError(err.message || 'Failed'); }
+    try { await scheduleService.delete(id); toast.success('Deleted'); fetchSchedules(); } catch (err) { toast.error(err.message || 'Failed'); }
   };
 
   const handleProfileUpdate = async (e) => {
@@ -229,6 +251,9 @@ const Admin = () => {
             <button className="admin-menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
               <span /><span /><span />
             </button>
+            <button type="button" className="home-btn" onClick={() => navigate('/')} title="Back to Home" aria-label="Back to Home">
+              ← Home
+            </button>
             <span className="admin-header-brand"><img src="/logo.png" alt="SmartBDU" className="admin-header-logo-img" /></span>
           </div>
 
@@ -271,8 +296,6 @@ const Admin = () => {
         </header>
 
         <div className="admin-content">
-          {message && <div className="success-message">{message}</div>}
-          {error && <div className="error-message">{error}</div>}
           {createdUserPassword && (
             <div className="success-message" style={{marginBottom:16,padding:14,background:'#e8f5e9',border:'1px solid #a5d6a7'}}>
               <strong>✅ User Created!</strong>&nbsp; Name: <strong>{createdUserPassword.name}</strong>&nbsp;|&nbsp; ID: <strong>{createdUserPassword.id}</strong>&nbsp;|&nbsp; Password: <strong>{createdUserPassword.password}</strong>
@@ -314,7 +337,7 @@ const Admin = () => {
           {activeTab === 'students' && (
             <div className="tab-content">
               <div className="user-action-bar">
-                <button className="add-user-btn add-student-btn" onClick={() => { setModal('student'); setError(''); setMessage(''); }}>+ Add Student</button>
+                <button className="add-user-btn add-student-btn" onClick={() => { setModal('student'); }}>+ Add Student</button>
                 <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
                   <input type="text" placeholder="Search students..." value={userSearch} onChange={e => setUserSearch(e.target.value)} style={{padding:'7px 12px',borderRadius:8,border:'1px solid #ddd',fontSize:13}} />
                   <button onClick={fetchUsers} className="refresh-btn" disabled={usersLoading}>Refresh</button>
@@ -348,7 +371,7 @@ const Admin = () => {
           {activeTab === 'teachers' && (
             <div className="tab-content">
               <div className="user-action-bar">
-                <button className="add-user-btn add-teacher-btn" onClick={() => { setModal('teacher'); setError(''); setMessage(''); }}>+ Add Teacher</button>
+                <button className="add-user-btn add-teacher-btn" onClick={() => { setModal('teacher'); }}>+ Add Teacher</button>
                 <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
                   <input type="text" placeholder="Search teachers..." value={userSearch} onChange={e => setUserSearch(e.target.value)} style={{padding:'7px 12px',borderRadius:8,border:'1px solid #ddd',fontSize:13}} />
                   <button onClick={fetchUsers} className="refresh-btn" disabled={usersLoading}>Refresh</button>
@@ -388,7 +411,15 @@ const Admin = () => {
                   <h2>Create Courses</h2>
                   <form onSubmit={handleCourseSubmit}>
                     <div className="course-header-row">
-                      <div className="form-group"><label>Department *</label><input type="text" value={courseHeader.department} onChange={e => setCourseHeader({...courseHeader,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select value={courseHeader.department} onChange={e => setCourseHeader({...courseHeader,department:e.target.value})} required>
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="form-group"><label>Batch / Year *</label><input type="number" value={courseHeader.year} onChange={e => setCourseHeader({...courseHeader,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
                     </div>
                     <div className="course-rows-label"><span>Courses for this Department &amp; Batch</span><span className="hint-text">{courseRows.length}/4 courses</span></div>
@@ -453,7 +484,15 @@ const Admin = () => {
                       </select>
                     </div>
                     {(announcementForm.targetType==='department'||announcementForm.targetType==='batch'||announcementForm.targetType==='section') && (
-                      <div className="form-group"><label>Department *</label><input type="text" value={announcementForm.department} onChange={e => setAnnouncementForm({...announcementForm,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select value={announcementForm.department} onChange={e => setAnnouncementForm({...announcementForm,department:e.target.value})} required>
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                          ))}
+                        </select>
+                      </div>
                     )}
                     {(announcementForm.targetType==='batch'||announcementForm.targetType==='section') && (
                       <div className="form-group"><label>Batch / Year *</label><input type="text" value={announcementForm.batch} onChange={e => setAnnouncementForm({...announcementForm,batch:e.target.value})} placeholder="e.g. 3" required /></div>
@@ -518,7 +557,15 @@ const Admin = () => {
                   <h2>Create Class Schedule</h2>
                   <form onSubmit={handleScheduleSubmit}>
                     <div className="sched-header-grid">
-                      <div className="form-group"><label>Department *</label><input type="text" value={schedHeader.department} onChange={e => setSchedHeader({...schedHeader,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                      <div className="form-group">
+                        <label>Department *</label>
+                        <select value={schedHeader.department} onChange={e => setSchedHeader({...schedHeader,department:e.target.value})} required>
+                          <option value="">Select Department</option>
+                          {DEPARTMENTS.map(dept => (
+                            <option key={dept} value={dept}>{dept}</option>
+                          ))}
+                        </select>
+                      </div>
                       <div className="form-group"><label>Batch / Year *</label><input type="number" value={schedHeader.year} onChange={e => setSchedHeader({...schedHeader,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
                       <div className="form-group"><label>Semester</label><input type="number" value={schedHeader.semester} onChange={e => setSchedHeader({...schedHeader,semester:e.target.value})} placeholder="1 or 2" min="1" max="2" /></div>
                       <div className="form-group"><label>Section</label><input type="text" value={schedHeader.section} onChange={e => setSchedHeader({...schedHeader,section:e.target.value})} placeholder="e.g. A" /></div>
@@ -624,14 +671,21 @@ const Admin = () => {
               <h2>{modal==='student'?'🎓 Add Student':'👩‍🏫 Add Teacher'}</h2>
               <button className="modal-close" onClick={() => setModal(null)}>✕</button>
             </div>
-            {error && <div className="error-message" style={{marginBottom:12}}>{error}</div>}
 
             {modal === 'student' && (
               <form onSubmit={handleStudentSubmit}>
                 <div className="form-group"><label>Full Name *</label><input type="text" value={studentForm.name} onChange={e => setStudentForm({...studentForm,name:e.target.value})} placeholder="e.g. Abebe Kebede" required /></div>
                 <div className="form-group"><label>Student ID *</label><input type="text" value={studentForm.studentId} onChange={e => setStudentForm({...studentForm,studentId:e.target.value})} placeholder="e.g. BDU2024001" required /></div>
                 <div className="form-group"><label>Email *</label><input type="email" value={studentForm.email} onChange={e => setStudentForm({...studentForm,email:e.target.value})} placeholder="student@bdu.edu.et" required /></div>
-                <div className="form-group"><label>Department *</label><input type="text" value={studentForm.department} onChange={e => setStudentForm({...studentForm,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                <div className="form-group">
+                  <label>Department *</label>
+                  <select value={studentForm.department} onChange={e => setStudentForm({...studentForm,department:e.target.value})} required>
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="modal-row">
                   <div className="form-group"><label>Batch / Year *</label><input type="number" value={studentForm.year} onChange={e => setStudentForm({...studentForm,year:e.target.value})} placeholder="e.g. 3" min="1" max="6" required /></div>
                   <div className="form-group"><label>Section</label><input type="text" value={studentForm.section} onChange={e => setStudentForm({...studentForm,section:e.target.value})} placeholder="e.g. A" /></div>
@@ -647,7 +701,15 @@ const Admin = () => {
                 <div className="form-group"><label>Full Name *</label><input type="text" value={teacherForm.name} onChange={e => setTeacherForm({...teacherForm,name:e.target.value})} placeholder="e.g. Dr. Solomon Tadesse" required /></div>
                 <div className="form-group"><label>Employee ID *</label><input type="text" value={teacherForm.employeeId} onChange={e => setTeacherForm({...teacherForm,employeeId:e.target.value})} placeholder="e.g. TG001234" required /></div>
                 <div className="form-group"><label>Email *</label><input type="email" value={teacherForm.email} onChange={e => setTeacherForm({...teacherForm,email:e.target.value})} placeholder="teacher@bdu.edu.et" required /></div>
-                <div className="form-group"><label>Primary Department *</label><input type="text" value={teacherForm.department} onChange={e => setTeacherForm({...teacherForm,department:e.target.value})} placeholder="e.g. Computer Science" required /></div>
+                <div className="form-group">
+                  <label>Primary Department *</label>
+                  <select value={teacherForm.department} onChange={e => setTeacherForm({...teacherForm,department:e.target.value})} required>
+                    <option value="">Select Department</option>
+                    {DEPARTMENTS.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="form-group"><label>All Departments <span className="hint-text">(comma-separated)</span></label><input type="text" value={teacherForm.departments} onChange={e => setTeacherForm({...teacherForm,departments:e.target.value})} placeholder="e.g. Computer Science, Software Engineering" /></div>
                 <div className="form-group"><label>Batches / Years <span className="hint-text">(comma-separated)</span></label><input type="text" value={teacherForm.batches} onChange={e => setTeacherForm({...teacherForm,batches:e.target.value})} placeholder="e.g. 1, 2, 3" /></div>
                 <div className="form-group"><label>Sections <span className="hint-text">(comma-separated)</span></label><input type="text" value={teacherForm.sections} onChange={e => setTeacherForm({...teacherForm,sections:e.target.value})} placeholder="e.g. A, B, C" /></div>

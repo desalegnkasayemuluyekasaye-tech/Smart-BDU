@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { authService } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -7,12 +8,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('smartbdu_user');
-    const token = localStorage.getItem('smartbdu_token');
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const loadUser = async () => {
+      const storedUser = localStorage.getItem('smartbdu_user');
+      const token = localStorage.getItem('smartbdu_token');
+      if (storedUser && token) {
+        const parsedUser = JSON.parse(storedUser);
+        try {
+          const profile = await authService.getProfile();
+          if (profile._id) {
+            setUser(profile);
+            localStorage.setItem('smartbdu_user', JSON.stringify(profile));
+          } else {
+            setUser(parsedUser);
+          }
+        } catch (e) {
+          setUser(parsedUser);
+        }
+      }
+      setLoading(false);
+    };
+    loadUser();
   }, []);
 
   const login = (userData, token) => {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/api';
+import { toast } from 'react-toastify';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -13,7 +14,6 @@ const Register = () => {
     year: '',
     phone: ''
   });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -24,7 +24,6 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     
     try {
@@ -33,10 +32,10 @@ const Register = () => {
         login(data, data.token);
         navigate('/app');
       } else {
-        setError(data.message || 'Registration failed');
+        toast.error(data.message || 'Registration failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      toast.error('An error occurred. Please try again.');
     }
     setLoading(false);
   };
@@ -48,8 +47,6 @@ const Register = () => {
           <h2>Smart<span>BDU</span></h2>
           <p>Create Your Account</p>
         </div>
-        
-        {error && <div className="alert alert-error" style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">

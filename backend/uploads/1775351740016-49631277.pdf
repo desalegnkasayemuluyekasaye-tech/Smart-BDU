@@ -1,0 +1,499 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 3824
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F1 20 Tf
+23. TL
+0.388 0.4 0.945 rg
+144.739999999999867 785.1970866141732586 Td
+(SmartBDU AI - Learning Roadmap) Tj
+ET
+BT
+/F1 16 Tf
+18.3999999999999986 TL
+0. g
+178.8399999999999181 742.6774015748030706 Td
+(Data Scientist Learning Roadmap) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0.392 g
+170.9799999999999329 714.3309448818897636 Td
+(Target Role: Data Scientist | Duration: 6 months) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0.388 0.4 0.945 rg
+56.6929133858267775 657.6380314960629221 Td
+(1. Phase 1: Python Fundamentals) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.235 g
+56.6929133858267775 634.9608661417322537 Td
+(Learn the basics of Python programming, including data structures, file input/output, and) Tj
+T* (object-oriented programming. Recommended resources: Python.org, Codecademy's Python) Tj
+T* (Course) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.545 0.361 0.965 rg
+56.6929133858267775 569.7640157480313974 Td
+(Duration: 2 weeks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.024 0.714 0.831 rg
+56.6929133858267775 552.7561417322833677 Td
+(Skills: Python basics, data structures, file input/output) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 535.748267716535338 Td
+(Resources: https://www.python.org/about/gettingstarted/) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0.388 0.4 0.945 rg
+56.6929133858267775 490.3939370078739444 Td
+(2. Phase 2: Data Structures and Algorithms) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.235 g
+56.6929133858267775 467.716771653543276 Td
+(Study advanced data structures and algorithms, including sorting, searching, and graph algorithms.) Tj
+T* (Recommended resources: GeeksforGeeks, Coursera's Data Structures and Algorithms Course) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.545 0.361 0.965 rg
+56.6929133858267775 419.5277952755905062 Td
+(Duration: 4 weeks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.024 0.714 0.831 rg
+56.6929133858267775 402.5199212598424765 Td
+(Skills: data structures, algorithms, sorting, searching, graph algorithms) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 385.5120472440944468 Td
+(Resources: https://www.geeksforgeeks.org/) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0.388 0.4 0.945 rg
+56.6929133858267775 340.1577165354329964 Td
+(3. Phase 3: Data Visualization and Machine Learning) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.235 g
+56.6929133858267775 317.480551181102328 Td
+(Learn data visualization tools like Matplotlib and Seaborn, and machine learning concepts using) Tj
+T* (scikit-learn. Recommended resources: DataCamp's Data Visualization Course, Coursera's Machine) Tj
+T* (Learning Specialization) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.545 0.361 0.965 rg
+56.6929133858267775 252.2837007874014716 Td
+(Duration: 4 weeks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.024 0.714 0.831 rg
+56.6929133858267775 235.2758267716534419 Td
+(Skills: data visualization, machine learning, scikit-learn) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 218.2679527559054122 Td
+(Resources: https://www.datacamp.com/, https://www.coursera.org/) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0.388 0.4 0.945 rg
+56.6929133858267775 172.9136220472439618 Td
+(4. Phase 4: Deep Learning and NLP) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.235 g
+56.6929133858267775 150.2364566929132934 Td
+(Study deep learning concepts and Natural Language Processing \(NLP\) techniques using) Tj
+T* (TensorFlow and NLTK. Recommended resources: Kaggle's Deep Learning Tutorials, Coursera's) Tj
+T* (NLP Specialization) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.545 0.361 0.965 rg
+56.6929133858267775 85.0396062992125508 Td
+(Duration: 4 weeks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.024 0.714 0.831 rg
+56.6929133858267775 68.0317322834645211 Td
+(Skills: deep learning, nlp, tensorflow, nltk) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 51.0238582677164914 Td
+(Resources: https://www.kaggle.com/, https://www.coursera.org/) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 1841
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0.388 0.4 0.945 rg
+56.6929133858267775 785.1970866141732586 Td
+(5. Phase 5: Practical Experience and Project Development) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.235 g
+56.6929133858267775 762.5199212598424765 Td
+(Apply your knowledge by working on practical projects and contributing to open-source projects.) Tj
+T* (Recommended resources: GitHub, Data Science subreddit) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.545 0.361 0.965 rg
+56.6929133858267775 714.3309448818897636 Td
+(Duration: 4 weeks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.024 0.714 0.831 rg
+56.6929133858267775 697.3230708661417339 Td
+(Skills: practical experience, project development, collaboration) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 680.3151968503937042 Td
+(Resources: https://www.github.com/, https://www.datascience subreddit.com/) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0.388 0.4 0.945 rg
+56.6929133858267775 634.9608661417322537 Td
+(6. Phase 6: Career Preparation and Resume Building) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.235 g
+56.6929133858267775 612.2837007874015853 Td
+(Prepare for a career in data science by building a strong resume, learning about industry trends,) Tj
+T* (and networking. Recommended resources: LinkedIn, Data Science Job Board) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.545 0.361 0.965 rg
+56.6929133858267775 564.0947244094487587 Td
+(Duration: 2 weeks) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.024 0.714 0.831 rg
+56.6929133858267775 547.086850393700729 Td
+(Skills: career preparation, resume building, industry trends, networking) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.392 g
+56.6929133858267775 530.0789763779526993 Td
+(Resources: https://www.linkedin.com/, https://www.datasciencejobboard.com/) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0.588 g
+236.2899999999999636 34.0159842519684616 Td
+(Generated by SmartBDU AI) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R ]
+/Count 2
+>>
+endobj
+7 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+8 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+9 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+10 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+11 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+14 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 7 0 R
+/F2 8 0 R
+/F3 9 0 R
+/F4 10 0 R
+/F5 11 0 R
+/F6 12 0 R
+/F7 13 0 R
+/F8 14 0 R
+/F9 15 0 R
+/F10 16 0 R
+/F11 17 0 R
+/F12 18 0 R
+/F13 19 0 R
+/F14 20 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+21 0 obj
+<<
+/Producer (jsPDF 2.5.2)
+/CreationDate (D:20260402171534+03'00')
+>>
+endobj
+22 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 23
+0000000000 65535 f 
+0000006058 00000 n 
+0000007883 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000004028 00000 n 
+0000004165 00000 n 
+0000006121 00000 n 
+0000006246 00000 n 
+0000006376 00000 n 
+0000006509 00000 n 
+0000006647 00000 n 
+0000006771 00000 n 
+0000006900 00000 n 
+0000007032 00000 n 
+0000007168 00000 n 
+0000007296 00000 n 
+0000007423 00000 n 
+0000007552 00000 n 
+0000007685 00000 n 
+0000007787 00000 n 
+0000008133 00000 n 
+0000008219 00000 n 
+trailer
+<<
+/Size 23
+/Root 22 0 R
+/Info 21 0 R
+/ID [ <3A4EB7DB1F8250E15804C48A3ABA4883> <3A4EB7DB1F8250E15804C48A3ABA4883> ]
+>>
+startxref
+8323
+%%EOF

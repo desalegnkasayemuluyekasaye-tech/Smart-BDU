@@ -7,7 +7,7 @@ const generateToken = (id) => {
 
 const registerUser = async (req, res) => {
   try {
-    const { name, email, password, studentId, employeeId, department, year, phone, role } = req.body;
+    const { name, email, password, studentId, employeeId, department, year, semester, section, phone, role } = req.body;
     
     let existingUser = await User.findOne({ 
       $or: [
@@ -19,12 +19,16 @@ const registerUser = async (req, res) => {
     
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
-    const user = await User.create({ name, email, password, studentId, employeeId, department, year, phone, role });
+    const user = await User.create({ name, email, password, studentId, employeeId, department, year, semester, section, phone, role });
     res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
+      department: user.department,
+      year: user.year,
+      semester: user.semester,
+      section: user.section,
       token: generateToken(user._id)
     });
   } catch (error) {
@@ -51,6 +55,9 @@ const loginUser = async (req, res) => {
         email: user.email,
         role: user.role,
         department: user.department,
+        year: user.year,
+        semester: user.semester,
+        section: user.section,
         studentId: user.studentId,
         employeeId: user.employeeId,
         token: generateToken(user._id)

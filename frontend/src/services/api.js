@@ -153,8 +153,8 @@ export const assignmentService = {
     const res = await fetch(`${API_URL}/assignments?${query}`, { headers: headers() });
     return res.json();
   },
-  getUpcoming: async () => {
-    const res = await fetch(`${API_URL}/assignments/upcoming`, { headers: headers() });
+  getMyCreated: async () => {
+    const res = await fetch(`${API_URL}/assignments?createdBy=true`, { headers: headers() });
     return res.json();
   },
   create: async (data) => {
@@ -331,6 +331,24 @@ export const postService = {
   delete: async (id) => {
     const res = await fetch(`${API_URL}/posts/${id}`, {
       method: 'DELETE',
+      headers: headers()
+    });
+    return res.json();
+  }
+};
+
+export const notificationService = {
+  getAll: async () => {
+    const res = await fetch(`${API_URL}/notifications`, { headers: headers() });
+    return res.json();
+  },
+  getUnreadCount: async () => {
+    const res = await fetch(`${API_URL}/notifications/unread-count`, { headers: headers() });
+    return res.json();
+  },
+  markAsRead: async () => {
+    const res = await fetch(`${API_URL}/notifications/mark-read`, {
+      method: 'PUT',
       headers: headers()
     });
     return res.json();
