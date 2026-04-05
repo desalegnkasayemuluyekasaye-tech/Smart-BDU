@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { adminService, courseService, announcementService, scheduleService } from '../services/api';
 import { DEPARTMENTS } from '../constants';
+import FloatingAI from '../components/FloatingAI';
 import './Admin.css';
 
 const EMPTY_STUDENT = { name: '', email: '', studentId: '', department: '', year: '', section: '', phone: '' };
@@ -721,6 +722,7 @@ const Admin = () => {
           </div>
         </div>
       )}
+      <FloatingAI />
     </div>
   );
 };
