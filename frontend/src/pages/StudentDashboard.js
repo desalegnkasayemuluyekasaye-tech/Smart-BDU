@@ -86,8 +86,8 @@ const StudentDashboard = () => {
   const [submittingId, setSubmittingId] = useState(null);
   const [submitMsg, setSubmitMsg] = useState('');
   const [acceptingId, setAcceptingId] = useState(null);
-  const [studentMaterials, setStudentMaterials] = useState([]);
-  const [materialsLoading, setMaterialsLoading] = useState(false);
+  const [enrollingId, setEnrollingId] = useState(null);
+  const [allAvailableCourses, setAllAvailableCourses] = useState([]);
 
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   const today = days[new Date().getDay()];
@@ -194,6 +194,40 @@ const StudentDashboard = () => {
     setAcceptingId(null);
   };
 
+  const handleEnrollCourse = async (courseId) => {
+    setEnrollingId(courseId);
+    try {
+      const res = await courseService.enroll(courseId);
+      if (res.status === 'pending' || res.message?.includes('Enrollment requested')) {
+        setSubmitMsg('Enrollment request sent to teacher!');
+        // Refresh available courses
+        const available = await courseService.getAll({ department: user?.department });
+        setAllAvailableCourses(available || []);
+      } else {
+        setSubmitMsg(res.message || 'Failed to enroll');
+      }
+    } catch (err) {
+      setSubmitMsg('Failed to enroll. Try again.');
+    }
+    setEnrollingId(null);
+  };
+
+  const fetchAssignments = async () => {
+    try {
+      const params = {
+        department: user?.department,
+        year: user?.year,
+        section: user?.section
+      };
+      const data = await assignmentService.getAll(params);
+      setAllAssignments(data || []);
+      const upcoming = await assignmentService.getUpcoming();
+      setUpcomingAssignments(upcoming || []);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const fetchCourseFiles = async (courseCode) => {
     try {
       const data = await fileService.getAll({ courseCode });
@@ -244,28 +278,33 @@ const StudentDashboard = () => {
     const fetchData = async () => {
       try {
         const userDepartment = user?.department || '';
-        const userYear = user?.year;
-        const userSemester = user?.semester || '1';
-        const userSection = user?.section || '';
-        
-        console.log('Fetching data for student - dept:', userDepartment, 'year:', userYear, 'semester:', userSemester, 'section:', userSection);
-        
-        const [annData, schedData, allSchedData, assignData, upcomingData, courseData, materialData] = await Promise.all([
-          announcementService.getAll({ limit: 10 }),
-          scheduleService.getAll({ day: today, department: userDepartment, year: userYear, section: userSection }),
-          scheduleService.getAll({ department: userDepartment, year: userYear, section: userSection }),
-          assignmentService.getAll({ department: userDepartment, year: userYear, semester: userSemester, section: userSection }),
-          assignmentService.getUpcoming({ department: userDepartment, year: userYear, semester: userSemester, section: userSection }),
-          courseService.getAll({ department: userDepartment }),
-          fileService.getAll({ department: userDepartment, year: userYear, semester: userSemester, section: userSection }),
+        const params = {
+          department: user?.department,
+          year: user?.year,
+          section: user?.section
+        };
+        const [annData, schedData, allSchedData, assignData, upcomingData, courseData, availableData] = await Promise.all([
+          announcementService.getAll({ limit: 10, ...params }),
+          scheduleService.getAll({ day: today, ...params }),
+          scheduleService.getAll({ ...params }),
+          assignmentService.getAll(params),
+          assignmentService.getUpcoming(params),
+          courseService.getMyCourses(), // Student's enrolled courses
+          courseService.getAll({ department: userDepartment, year: user?.year, section: user?.section }), // All courses in department/year/section
         ]);
         setAnnouncements(annData.announcements || annData || []);
         setTodaySchedule(schedData || []);
         setAllSchedule(allSchedData || []);
         setAllAssignments(assignData || []);
         setUpcomingAssignments(upcomingData || []);
-        setMyCourses(courseData || []);
-        setStudentMaterials(materialData.files || materialData || []);
+        
+        // My enrolled courses (only accepted ones)
+        const enrolled = (courseData || []).filter(c => 
+          c.enrolledStudents?.some(s => s.studentId === user?._id && s.status === 'accepted') ||
+          c.enrolledStudents?.some(s => s.studentId?._id === user?._id && s.status === 'accepted')
+        );
+        setMyCourses(enrolled);
+        setAllAvailableCourses(availableData || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       }
@@ -598,9 +637,10 @@ const StudentDashboard = () => {
 
   const renderCourses = () => (
     <div className="tab-content">
+      {submitMsg && <div className="success-message" style={{ marginBottom: 12 }}>{submitMsg}</div>}
       <div className="data-section">
         <div className="section-header">
-          <h2>📚 My courses</h2>
+          <h2>📚 My enrolled courses ({myCourses.length})</h2>
         </div>
         {myCourses.length > 0 ? (
           <div className="courses-grid">
@@ -633,8 +673,52 @@ const StudentDashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="empty-state">No courses enrolled</div>
+          <div className="empty-state">No courses enrolled yet. Browse available courses below.</div>
         )}
+      </div>
+
+      <div className="data-section" style={{ marginTop: 40 }}>
+        <div className="section-header">
+          <h2>🔎 Available courses in {user?.department}</h2>
+        </div>
+        <div className="courses-grid">
+          {allAvailableCourses
+            .filter(c => !myCourses.some(m => m._id === c._id))
+            .map((course, idx) => {
+              const enrollment = course.enrolledStudents?.find(s => 
+                (s.studentId === user?._id || s.studentId?._id === user?._id)
+              );
+              const isPending = enrollment?.status === 'pending';
+
+              return (
+                <div key={idx} className="course-card" style={{ cursor: isPending ? 'default' : 'pointer' }}>
+                  <div className="course-code-badge" style={{ background: isPending ? '#ff9800' : '#1565c0' }}>
+                    {course.code} {isPending && '(Pending)'}
+                  </div>
+                  <div className="course-name">{course.name}</div>
+                  <div className="course-meta">
+                    <span>Year {course.year}</span> • <span>Sem {course.semester}</span>
+                  </div>
+                  <div className="course-instructor">👨‍🏫 {course.instructor || 'TBA'}</div>
+                  
+                  {!isPending ? (
+                    <button 
+                      className="submit-btn" 
+                      style={{ marginTop: 12, width: '100%' }}
+                      onClick={(e) => { e.stopPropagation(); handleEnrollCourse(course._id); }}
+                      disabled={enrollingId === course._id}
+                    >
+                      {enrollingId === course._id ? 'Enrolling...' : '➕ Enroll in Course'}
+                    </button>
+                  ) : (
+                    <div style={{ marginTop: 12, textAlign: 'center', color: '#ff9800', fontWeight: 600, fontSize: 13 }}>
+                      ⌛ Waiting for teacher to accept
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+        </div>
       </div>
     </div>
   );

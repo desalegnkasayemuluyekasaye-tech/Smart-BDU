@@ -144,6 +144,18 @@ export const courseService = {
     const result = await res.json();
     if (!res.ok) throw new Error(result.message || 'Failed to add material');
     return result;
+  },
+  enroll: async (courseId) => {
+    const res = await fetch(`${API_URL}/courses/${courseId}/enroll`, {
+      method: 'POST', headers: headers()
+    });
+    return res.json();
+  },
+  acceptStudent: async (courseId, studentId) => {
+    const res = await fetch(`${API_URL}/courses/${courseId}/accept-student`, {
+      method: 'POST', headers: headers(), body: JSON.stringify({ studentId })
+    });
+    return res.json();
   }
 };
 
@@ -153,8 +165,9 @@ export const assignmentService = {
     const res = await fetch(`${API_URL}/assignments?${query}`, { headers: headers() });
     return res.json();
   },
-  getMyCreated: async () => {
-    const res = await fetch(`${API_URL}/assignments?createdBy=true`, { headers: headers() });
+  getUpcoming: async (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    const res = await fetch(`${API_URL}/assignments/upcoming?${query}`, { headers: headers() });
     return res.json();
   },
   create: async (data) => {
